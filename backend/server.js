@@ -10,7 +10,8 @@ app.use(bodyParser.json())
 
 app.post('/generar-cartel', async (req, res) => {
   const { datos, tipo, tamaño } = req.body
-  const campos = datos.split(',').map(s => s.trim())
+  const partes = datos.match(/(?:[^,"']+|"(?:\\.|[^"])*"|'(?:\\.|[^'])*')+/g)
+const campos = partes.map(s => s.trim().replace(/^"|"$/g, ''))
 const desc = campos[3]
 const precioOriginal = parseFloat(campos[4].replace('$','').replace(',','.'))
 const precioFinal = parseFloat(campos[5].replace('$','').replace(',','.'))
@@ -36,7 +37,6 @@ const sku = campos[6]
   if (barcodeImg && barcodeImg.length > 0) {
   doc.image(barcodeImg, 50, 280, { width: 200 })
 }
-
   doc.end()
 })
 
