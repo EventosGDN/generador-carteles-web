@@ -13,12 +13,16 @@ exports.generarCodigoEAN13 = async function (codigo) {
       {
         bcid: 'ean13',
         text: limpio.padStart(13, '0'),
-        scale: 3,
-        height: 10,
+        includetext: true,
+        validate: false // ignora dígito verificador incorrecto
       },
       function (err, png) {
-        if (err) reject(err)
-        else resolve(png)
+        if (err) {
+          console.warn('⚠️ Error al generar código:', err.message)
+          resolve(Buffer.alloc(0)) // cartel sin código
+        } else {
+          resolve(png)
+        }
       }
     )
   })
