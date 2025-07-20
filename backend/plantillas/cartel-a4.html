@@ -1,122 +1,154 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Cartel A6</title>
+  <meta charset="UTF-8" />
   <style>
-    @font-face {
-      font-family: 'Arial Black';
-      src: local('Arial Black'), local('Arial-BoldMT');
-    }
-
     body {
       margin: 0;
       padding: 0;
-      width: 105mm;
-      height: 148mm;
       font-family: 'Arial', sans-serif;
+      width: 210mm;
+      height: 297mm;
+      box-sizing: border-box;
+    }
+
+    .contenedor {
+      padding: 20mm;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      box-sizing: border-box;
     }
 
-    .descripcion {
-      font-family: 'Arial Black';
-      font-size: 18pt;
-      margin: 20px 10px 10px;
+    .titulo {
+      font-size: 32px;
       text-align: center;
+      margin-bottom: 12mm;
     }
 
-    .descuento-box {
-      width: 80%;
+    .descuento {
       display: flex;
-      margin: 10px auto;
-      border: 1px solid black;
-      height: 60px;
+      width: 140mm;
+      height: 30mm;
+      margin-bottom: 12mm;
+      border: 2px solid black;
     }
 
     .lleva {
-      width: 30%;
+      width: 40%;
       background: white;
       display: flex;
-      flex-direction: column;
-      justify-content: center;
       align-items: center;
-      font-size: 10pt;
+      justify-content: center;
+      font-size: 18px;
       font-weight: bold;
     }
 
-    .porcentaje {
-      width: 70%;
+    .valor-descuento {
+      width: 60%;
       background: black;
       color: white;
-      font-size: 30pt;
+      font-size: 48px;
       font-weight: bold;
       display: flex;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
     }
 
     .precios {
       display: flex;
-      justify-content: space-around;
       width: 100%;
-      margin: 20px 0 5px;
+      justify-content: space-around;
+      margin-bottom: 4mm;
+      align-items: baseline;
     }
 
     .tachado {
       text-decoration: line-through;
-      font-size: 14pt;
+      font-size: 20px;
     }
 
     .precio-final {
-      font-size: 22pt;
+      font-size: 32px;
       font-weight: bold;
     }
 
-    .origen {
-      font-size: 9pt;
+    .precio-xunidad {
+      font-size: 18px;
+      margin-top: 2mm;
+    }
+
+    .info {
       text-align: center;
+      font-size: 14px;
+      margin-bottom: 10mm;
     }
 
     .codigo {
-      font-size: 8pt;
       text-align: center;
-      margin-top: 10px;
+      font-size: 12px;
+      margin-top: 2mm;
     }
 
-    .barcode {
-      margin-top: 5px;
-      width: 180px;
-      height: 40px;
+    .codigo-barras {
+      width: 80mm;
+      height: auto;
+      margin-top: 4mm;
     }
+
+    .sello {
+      position: absolute;
+      right: 20mm;
+      bottom: 30mm;
+      width: 35mm;
+    }
+
+  .sello-html {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 100px;
+    height: 100px;
+    background: black;
+    border-radius: 50%;
+    color: white;
+    font-family: 'Arial', sans-serif;
+    font-size: 12px;
+    text-align: center;
+    padding-top: 18px;
+    line-height: 1.2;
+  }
+  .sello-html strong {
+    font-size: 14px;
+  }
   </style>
 </head>
 <body>
-  <div class="descripcion">{{descripcion}}</div>
+  <div class="contenedor">
+    <div class="titulo">{{descripcion}}</div>
 
-  <div class="descuento-box">
-    <div class="lleva">
-      LLEVÁS<br>{{cantidad}}X
+    <div class="descuento">
+      <div class="lleva">LLEVÁS 1X</div>
+      <div class="valor-descuento">-{{descuento}}%</div>
     </div>
-    <div class="porcentaje">-{{descuento}}%</div>
-  </div>
 
-  <div class="precios">
-    <div class="tachado">${{precioOriginal}}</div>
-    <div class="precio-final">${{precioFinal}}</div>
-  </div>
+    <div class="precios">
+      <div class="tachado">$ {{precioOriginal}}</div>
+      <div class="precio-final">$ {{precioFinal}}</div>
+    </div>
 
-  <div class="origen">
-    Origen: {{origen}}<br>
-    VIGENCIA<br>
-    del {{fechaInicio}} al {{fechaFin}}<br>
-    dept {{departamento}} - item: {{item}}
-  </div>
+    <div class="precio-xunidad">Precio X Unidad<br>$ {{precioFinal}}</div>
 
-  <div class="codigo">{{ean}}</div>
-  <img class="barcode" src="data:image/png;base64,{{barcode}}" alt="Código de barras">
+    <div class="info">
+      Origen: Argentina<br>
+      VIGENCIA<br>
+      del {{desde}} al {{hasta}}<br>
+      dept: {{departamento}} - item: {{item}}
+    </div>
+
+    <img class="codigo-barras" src="data:image/png;base64,{{barcode}}" />
+    <div class="sello-html">PRECIO CON<br><strong>DESCUENTO</strong><br>INCLUIDO</div>
+
+  </div>
 </body>
 </html>

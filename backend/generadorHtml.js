@@ -1,28 +1,50 @@
+// generadorHtml.js
 const fs = require('fs')
 const path = require('path')
+const { generarCodigoEAN13 } = require('./codigoBarras')
+const puppeteer = require('puppeteer')
 
-function generarHTML(datos, tipo, tamaño) {
-  const plantillaNombre = tamaño === 'A4' ? 'cartel-a4.html' : 'cartel-a6.html'
-  const plantillaPath = path.join(__dirname, 'plantillas', plantillaNombre)
-  const htmlBase = fs.readFileSync(plantillaPath, 'utf8')
+async function generarHTMLCartel(datos) {
+  const htmlPath = path.join(__dirname, 'plantillas', 'cartel-a4.html')
+  let template = fs.readFileSync(htmlPath, 'utf8')
 
-  // Datos crudos (ya parseados antes de venir acá)
   const {
-    descripcion, precioOriginal, precioFinal, descuento, sku, depto, item, origen, vigencia
+    descripcion,
+    precioOriginal,
+    precioFinal,
+    descuento,
+    desde,
+    hasta,
+    departamento,
+    item,
+    sku
   } = datos
 
-  // Reemplaza los {{placeholders}} por los valores reales
-  return htmlBase
-    .replace('{{descripcion}}', descripcion)
-    .replace('{{precioOriginal}}', precioOriginal)
-    .replace('{{precioFinal}}', precioFinal)
-    .replace('{{descuento}}', descuento || '')
-    .replace('{{sku}}', sku)
-    .replace('{{depto}}', depto)
-    .replace('{{item}}', item)
-    .replace('{{origen}}', origen)
-    .replace('{{vigencia}}', vigencia)
-    .replace('{{tipo}}', tipo)
+  const barcodeBase64 = await generarCodigoEAN13(sku)
+
+  template = template
+    .replace(/{{descripcion}}/g, descripcion)
+    .replace(/{{precioOriginal}}/g, precioOriginal.toFixed(2))
+    .replace(/{{precioFinal}}/g, precioFinal.toFixed(2))
+    .replace(/{{descuento}}/g, descuento)
+    .replace(/{{desde}}/g, desde)
+    .replace(/{{hasta}}/g, hasta)
+    .replace(/{{departamento}}/g, departamento)
+    .replace(/{{item}}/g, item)
+    .replace(/{{barcode}}/g, barcodeBase64)
+
+  return template
 }
 
-module.exports = { generarHTML }
+async function generarPDFdesdeHTML(htmlString, res) {
+  const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] })
+  const page = await browser.newPage()
+  await page.setContent(htmlString, { waitUntil: 'load' })
+  const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true })
+  await browser.close()
+  res.setHeader('Content-Type', 'application/pdf')
+  res.setHeader('Content-Disposition', 'inline; filename="cartel.pdf"')
+  res.send(pdfBuffer)
+}
+
+module.exports = { generarHTMLCartel, generarPDFdesdeHTML }
