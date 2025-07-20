@@ -10,7 +10,12 @@ app.use(bodyParser.json())
 
 app.post('/generar-cartel', async (req, res) => {
   const { datos, tipo, tamaño } = req.body
-  const [desc, precioFinal, precioOriginal, sku] = datos.split(',').map(s => s.trim())
+  const campos = datos.split(',').map(s => s.trim())
+const desc = campos[3]
+const precioOriginal = parseFloat(campos[4].replace('$','').replace(',','.'))
+const precioFinal = parseFloat(campos[5].replace('$','').replace(',','.'))
+const sku = campos[6]
+
   const descuento = tipo === '%' ? Math.round(100 - (precioFinal * 100) / precioOriginal) : null
 
   const doc = new PDFDocument({ size: tamaño === 'A4' ? 'A4' : [298, 420] })
