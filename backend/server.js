@@ -11,7 +11,6 @@ app.use(bodyParser.json())
 app.post('/generar-cartel', async (req, res) => {
   const { datos, tipo, tamaño } = req.body
   const partes = datos.match(/(?:[^,"']+|"(?:\\.|[^"])*"|'(?:\\.|[^'])*')+/g)
-const partes = datos.match(/(?:[^,"']+|"(?:\\.|[^"])*"|'(?:\\.|[^'])*')+/g)
 const campos = partes.map(s => s.trim().replace(/^"|"$/g, ''))
 
 const desc = campos[3]
