@@ -11,11 +11,14 @@ app.use(bodyParser.json())
 app.post('/generar-cartel', async (req, res) => {
   const { datos, tipo, tamaño } = req.body
   const partes = datos.match(/(?:[^,"']+|"(?:\\.|[^"])*"|'(?:\\.|[^'])*')+/g)
+const partes = datos.match(/(?:[^,"']+|"(?:\\.|[^"])*"|'(?:\\.|[^'])*')+/g)
 const campos = partes.map(s => s.trim().replace(/^"|"$/g, ''))
+
 const desc = campos[3]
-const precioOriginal = parseFloat(campos[4].replace('$','').replace(',','.'))
-const precioFinal = parseFloat(campos[5].replace('$','').replace(',','.'))
-const sku = campos[6]
+const precioOriginal = parseFloat(`${campos[4].replace('$','')}.${campos[5]}`)
+const precioFinal = parseFloat(`${campos[6].replace('$','')}.${campos[7]}`)
+const sku = campos[8]
+
 
   const descuento = tipo === '%' ? Math.round(100 - (precioFinal * 100) / precioOriginal) : null
 
