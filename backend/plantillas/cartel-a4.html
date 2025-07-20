@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Cartel A6</title>
+  <style>
+    @font-face {
+      font-family: 'Arial Black';
+      src: local('Arial Black'), local('Arial-BoldMT');
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      width: 105mm;
+      height: 148mm;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      box-sizing: border-box;
+    }
+
+    .descripcion {
+      font-family: 'Arial Black';
+      font-size: 18pt;
+      margin: 20px 10px 10px;
+      text-align: center;
+    }
+
+    .descuento-box {
+      width: 80%;
+      display: flex;
+      margin: 10px auto;
+      border: 1px solid black;
+      height: 60px;
+    }
+
+    .lleva {
+      width: 30%;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-size: 10pt;
+      font-weight: bold;
+    }
+
+    .porcentaje {
+      width: 70%;
+      background: black;
+      color: white;
+      font-size: 30pt;
+      font-weight: bold;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .precios {
+      display: flex;
+      justify-content: space-around;
+      width: 100%;
+      margin: 20px 0 5px;
+    }
+
+    .tachado {
+      text-decoration: line-through;
+      font-size: 14pt;
+    }
+
+    .precio-final {
+      font-size: 22pt;
+      font-weight: bold;
+    }
+
+    .origen {
+      font-size: 9pt;
+      text-align: center;
+    }
+
+    .codigo {
+      font-size: 8pt;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .barcode {
+      margin-top: 5px;
+      width: 180px;
+      height: 40px;
+    }
+  </style>
+</head>
+<body>
+  <div class="descripcion">{{descripcion}}</div>
+
+  <div class="descuento-box">
+    <div class="lleva">
+      LLEVÁS<br>{{cantidad}}X
+    </div>
+    <div class="porcentaje">-{{descuento}}%</div>
+  </div>
+
+  <div class="precios">
+    <div class="tachado">${{precioOriginal}}</div>
+    <div class="precio-final">${{precioFinal}}</div>
+  </div>
+
+  <div class="origen">
+    Origen: {{origen}}<br>
+    VIGENCIA<br>
+    del {{fechaInicio}} al {{fechaFin}}<br>
+    dept {{departamento}} - item: {{item}}
+  </div>
+
+  <div class="codigo">{{ean}}</div>
+  <img class="barcode" src="data:image/png;base64,{{barcode}}" alt="Código de barras">
+</body>
+</html>
