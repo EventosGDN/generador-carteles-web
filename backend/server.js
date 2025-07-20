@@ -33,7 +33,10 @@ const sku = campos[6]
   }
 
   const barcodeImg = await generarCodigoEAN13(sku)
+  if (barcodeImg && barcodeImg.length > 0) {
   doc.image(barcodeImg, 50, 280, { width: 200 })
+}
+
   doc.end()
 })
 
