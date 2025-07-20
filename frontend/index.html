@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Generador de Carteles</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Generador de Carteles</h1>
+  <textarea id="inputDatos" placeholder="Pega aquí los datos (separados por coma)..."></textarea>
+  <div class="controles">
+    <select id="tipoCartel">
+      <option value="%">%</option>
+      <option value="2x1">2x1</option>
+    </select>
+    <select id="formato">
+      <option value="A4">A4</option>
+      <option value="A6">A6</option>
+    </select>
+    <button onclick="generarCartel()">Generar Cartel</button>
+  </div>
+  <div id="resultado"></div>
+  <script src="main.js"></script>
+</body>
+</html>
