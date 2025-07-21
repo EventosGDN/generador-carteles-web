@@ -6,7 +6,12 @@ const { generarCodigoEAN13 } = require('./codigoBarras')
 const puppeteer = require('puppeteer') // asegurate de tenerlo instalado
 
 const app = express()
-app.use(cors())
+app.use(cors({
+  origin: 'https://generador-carteles-frontend.vercel.app',
+  methods: ['POST'],
+  allowedHeaders: ['Content-Type']
+}))
+
 app.use(bodyParser.json())
 
 app.post('/generar-cartel', async (req, res) => {
