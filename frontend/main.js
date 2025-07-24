@@ -1,4 +1,4 @@
-async function generarCartel() {
+/*async function generarCartel() {
   const datos = document.getElementById('inputDatos').value
   const tipo = document.getElementById('tipoCartel').value
   const tamaño = document.getElementById('formato').value
@@ -18,4 +18,29 @@ async function generarCartel() {
   link.textContent = 'Descargar PDF'
   document.getElementById('resultado').innerHTML = ''
   document.getElementById('resultado').appendChild(link)
+} */
+
+
+// main.js (para desarrollo local)
+const URL_BACKEND = 'http://localhost:3000/generar-cartel' // o 127.0.0.1:3000
+
+function generarCartel() {
+  const datos = document.getElementById('inputDatos').value
+  const tipo = document.getElementById('tipoCartel').value
+const tamaño = document.getElementById('formato').value
+
+
+  fetch(URL_BACKEND, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ datos, tipo, tamaño })
+  })
+    .then(res => res.blob())
+    .then(blob => {
+      const url = URL.createObjectURL(blob)
+      window.open(url, '_blank')
+    })
+    .catch(err => {
+      alert('Error al generar cartel: ' + err)
+    })
 }

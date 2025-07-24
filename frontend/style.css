@@ -14,3 +14,21 @@ textarea {
 button {
   padding: 10px 20px;
 }
+
+@font-face {
+  font-family: 'Miso';
+  src: url('./fonts/miso-bold.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: 'Miso', sans-serif;
+}
+
+h1, .titulo {
+  font-family: 'Miso', sans-serif;
+  font-size: 32px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}

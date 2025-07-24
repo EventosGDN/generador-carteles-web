@@ -5,11 +5,14 @@
     "start": "node backend/server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
     "body-parser": "^1.20.2",
-    "pdfkit": "^0.13.0",
     "bwip-js": "^2.0.9",
+    "cors": "^2.8.5",
+    "csv-parse": "^6.1.0",
+    "express": "^4.18.2",
+    "googleapis": "^153.0.0",
+    "node-fetch": "^3.3.2",
+    "pdfkit": "^0.13.0",
     "puppeteer": "^21.3.8"
   }
 }
