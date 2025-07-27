@@ -1,4 +1,4 @@
-/*const express = require('express')
+const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
 const { generarHTMLCartel } = require('./generadorHtml')
@@ -12,7 +12,7 @@ const app = express()
   allowedHeaders: ['Content-Type']
 }))*/
 
-/*app.use(cors({
+app.use(cors({
   origin: ['http://127.0.0.1:5500', 'http://localhost:3000', 'https://generador-carteles-frontend.vercel.app']
 }))
 
@@ -86,13 +86,12 @@ function buscarDepartamentoPorSkuDesdeCSV(sku) {
   return fila?.['Dept ID']?.toString().trim() || 'Depto no disponible'
 }
 
-*/
 
 
 
 
 
-const express = require('express')
+/*const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
 const { generarHTMLCartel } = require('./generadorHtml')
@@ -164,4 +163,4 @@ app.post('/generar-cartel', async (req, res) => {
   res.send(finalPdfBytes)
 })
 
-app.listen(process.env.PORT || 3000, () => console.log('Servidor iniciado'))
+app.listen(process.env.PORT || 3000, () => console.log('Servidor iniciado'))*/

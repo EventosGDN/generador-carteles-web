@@ -3,15 +3,15 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "postinstall": "apt-get update && apt-get install -y chromium"
   },
   "dependencies": {
-  "express": "^4.18.2",
-  "cors": "^2.8.5",
-  "body-parser": "^1.20.2",
-  "pdfkit": "^0.13.0",
-  "bwip-js": "^2.0.9",
-  "puppeteer": "^21.0.0"
-}
-
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "body-parser": "^1.20.2",
+    "bwip-js": "^2.0.9",
+    "puppeteer": "^21.0.0",
+    "csv-parse": "^5.5.0"
+  }
 }
