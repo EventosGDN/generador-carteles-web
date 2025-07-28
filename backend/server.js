@@ -14,7 +14,7 @@ const ORIGENES_PERMITIDOS = [
   'https://generador-carteles-frontend.vercel.app'
 ]
 
-app.use(cors({
+const corsOptions = {
   origin: (origin, callback) => {
     if (!origin || ORIGENES_PERMITIDOS.includes(origin)) {
       callback(null, true)
@@ -22,9 +22,12 @@ app.use(cors({
       callback(new Error('CORS bloqueado para este origen'))
     }
   },
-  methods: ['POST'],
+  methods: ['POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type']
-}))
+}
+
+app.use(cors(corsOptions))
+app.options('*', cors(corsOptions)) // Responde a preflight
 
 app.use(bodyParser.json())
 
