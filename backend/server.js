@@ -8,8 +8,22 @@ const parse = require('csv-parse/sync')
 
 const app = express()
 
+const ORIGENES_PERMITIDOS = [
+  'http://127.0.0.1:5500',
+  'http://localhost:3000',
+  'https://generador-carteles-frontend.vercel.app'
+]
+
 app.use(cors({
-  origin: ['http://127.0.0.1:5500', 'http://localhost:3000', 'https://generador-carteles-frontend.vercel.app']
+  origin: (origin, callback) => {
+    if (!origin || ORIGENES_PERMITIDOS.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('CORS bloqueado para este origen'))
+    }
+  },
+  methods: ['POST'],
+  allowedHeaders: ['Content-Type']
 }))
 
 app.use(bodyParser.json())
