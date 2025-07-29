@@ -10,8 +10,10 @@ const app = express()
 const ORIGENES_PERMITIDOS = [
   'http://127.0.0.1:5500',
   'http://localhost:3000',
-  'https://generador-carteles-frontend.vercel.app'
+  'https://generador-carteles-frontend.vercel.app',
+  'https://generador-carteles-backend-production.up.railway.app' // ← opcional, por precaución
 ]
+
 
 
 app.use((req, res, next) => {

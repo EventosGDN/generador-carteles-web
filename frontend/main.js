@@ -22,7 +22,8 @@
 
 
 // main.js (para desarrollo local)
-const URL_BACKEND = 'http://localhost:3000/generar-cartel' // o 127.0.0.1:3000
+const URL_BACKEND = 'https://generador-carteles-backend-production.up.railway.app/generar-cartel'
+
 
 function generarCartel() {
   const datos = document.getElementById('inputDatos').value
