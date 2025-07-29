@@ -26,8 +26,21 @@ const corsOptions = {
   allowedHeaders: ['Content-Type']
 }
 
-app.use(cors(corsOptions))
-app.options('*', cors(corsOptions)) // Responde a preflight
+app.use((req, res, next) => {
+  const origin = req.headers.origin
+  if (ORIGENES_PERMITIDOS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  }
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200)
+  }
+
+  next()
+})
+
 
 app.use(bodyParser.json())
 
