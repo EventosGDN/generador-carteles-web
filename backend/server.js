@@ -1,6 +1,5 @@
 const express = require('express')
 const bodyParser = require('body-parser')
-const cors = require('cors')
 const { generarHTMLCartel } = require('./generadorHtml')
 const puppeteer = require('puppeteer')
 const fs = require('fs')
@@ -14,17 +13,6 @@ const ORIGENES_PERMITIDOS = [
   'https://generador-carteles-frontend.vercel.app'
 ]
 
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || ORIGENES_PERMITIDOS.includes(origin)) {
-      callback(null, true)
-    } else {
-      callback(new Error('CORS bloqueado para este origen'))
-    }
-  },
-  methods: ['POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
-}
 
 app.use((req, res, next) => {
   const origin = req.headers.origin
