@@ -1,3 +1,4 @@
+const cors = require('cors')
 const express = require('express')
 const bodyParser = require('body-parser')
 const { generarHTMLCartel } = require('./generadorHtml')
@@ -10,27 +11,23 @@ const app = express()
 const ORIGENES_PERMITIDOS = [
   'http://127.0.0.1:5500',
   'http://localhost:3000',
-  'https://generador-carteles-frontend.vercel.app',
-  'https://generador-carteles-backend-production.up.railway.app' // ← opcional, por precaución
+  'https://generador-carteles-frontend.vercel.app'
 ]
 
+// CORS seguro
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || ORIGENES_PERMITIDOS.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('CORS bloqueado'))
+    }
+  },
+  methods: ['POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type']
+}))
 
-
-app.use((req, res, next) => {
-  const origin = req.headers.origin
-  if (ORIGENES_PERMITIDOS.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin)
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
-  }
-
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200)
-  }
-
-  next()
-})
-
+app.options('*', cors()) // preflight
 
 app.use(bodyParser.json())
 
