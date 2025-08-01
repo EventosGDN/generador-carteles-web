@@ -14,7 +14,6 @@ const ORIGENES_PERMITIDOS = [
   'https://generador-carteles-frontend.vercel.app'
 ]
 
-// CORS seguro
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || ORIGENES_PERMITIDOS.includes(origin)) {
@@ -27,23 +26,32 @@ app.use(cors({
   allowedHeaders: ['Content-Type']
 }))
 
-app.options('*', cors()) // preflight
-
+app.options('*', cors())
 app.use(bodyParser.json())
 
 app.post('/generar-cartel', async (req, res) => {
   try {
     const { datos, tipo, tamaño } = req.body
 
+    console.log('Datos recibidos:', datos)
+
     const partes = datos.match(/(?:[^,"']+|"(?:\\.|[^"])*"|'(?:\\.|[^'])*')+/g)
     const campos = partes.map(s => s.trim().replace(/^"|"$/g, ''))
+
+    console.log('Campos:', campos)
 
     const desde = campos[0]
     const hasta = campos[1]
     const sku = campos[2]
     const descripcion = campos[3]
+
     const precioOriginal = parseFloat(`${campos[4].replace('$', '')}.${campos[5]}`)
     const precioFinal = parseFloat(`${campos[6].replace('$', '')}.${campos[7]}`)
+
+    if (isNaN(precioOriginal) || isNaN(precioFinal)) {
+      throw new Error('Precio inválido')
+    }
+
     const codigoBarras = campos[8]
     const descuento = tipo === '%' ? Math.round(100 - (precioFinal * 100) / precioOriginal) : null
 
@@ -92,6 +100,10 @@ app.listen(process.env.PORT || 3000, () => console.log('Servidor iniciado'))
 
 function buscarDepartamentoPorSkuDesdeCSV(sku) {
   const csvPath = './backend/base_deptos.csv'
+  if (!fs.existsSync(csvPath)) {
+    console.error('❌ No se encontró base_deptos.csv en:', csvPath)
+    return 'Depto no disponible'
+  }
   const contenido = fs.readFileSync(csvPath)
   const filas = parse.parse(contenido, { columns: true })
   const fila = filas.find(row => row['SKU ID']?.toString().trim() === sku)
