@@ -11,8 +11,9 @@ const app = express()
 const ORIGENES_PERMITIDOS = [
   'http://127.0.0.1:5500',
   'http://localhost:3000',
-  'https://generador-carteles-frontend.vercel.app'
+  'https://generador-carteles-web.vercel.app' // ✅ este es el nuevo correcto
 ]
+
 
 app.use(cors({
   origin: function (origin, callback) {
