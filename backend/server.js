@@ -27,7 +27,18 @@ app.use(cors({
   allowedHeaders: ['Content-Type']
 }))
 
-app.options('*', cors())
+app.options('*', cors({
+  origin: function (origin, callback) {
+    if (!origin || ORIGENES_PERMITIDOS.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('CORS bloqueado'))
+    }
+  },
+  methods: ['POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type']
+}))
+
 app.use(bodyParser.json())
 
 app.post('/generar-cartel', async (req, res) => {
