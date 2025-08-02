@@ -3,7 +3,7 @@ async function generarCartel() {
   const tipo = document.getElementById('tipoCartel').value
   const tamaño = document.getElementById('formato').value
 
-  const res = await fetch('https://generador-carteles-backend.onrender.com/generar-cartel', {
+  const res = await fetch('https://generador-carteles-backend.up.railway.app/generar-cartel', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ datos, tipo, tamaño })
