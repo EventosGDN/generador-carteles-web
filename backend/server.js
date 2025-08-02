@@ -8,49 +8,19 @@ const parse = require('csv-parse/sync')
 
 const app = express()
 
-const ORIGENES_PERMITIDOS = [
-  'http://127.0.0.1:5500',
-  'http://localhost:3000',
-  'https://generador-carteles-web.vercel.app' // ✅ este es el nuevo correcto
-]
-
-
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || ORIGENES_PERMITIDOS.includes(origin)) {
-      callback(null, true)
-    } else {
-      callback(new Error('CORS bloqueado'))
-    }
-  },
-  methods: ['POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
-}))
-
-app.options('*', cors({
-  origin: function (origin, callback) {
-    if (!origin || ORIGENES_PERMITIDOS.includes(origin)) {
-      callback(null, true)
-    } else {
-      callback(new Error('CORS bloqueado'))
-    }
-  },
-  methods: ['POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
-}))
+// 🔓 CORS liberado temporalmente para test
+app.use(cors())
+app.options('*', cors())
 
 app.use(bodyParser.json())
 
 app.post('/generar-cartel', async (req, res) => {
   try {
     const { datos, tipo, tamaño } = req.body
-
     console.log('Datos recibidos:', datos)
 
     const partes = datos.match(/(?:[^,"']+|"(?:\\.|[^"])*"|'(?:\\.|[^'])*')+/g)
     const campos = partes.map(s => s.trim().replace(/^"|"$/g, ''))
-
-    console.log('Campos:', campos)
 
     const desde = campos[0]
     const hasta = campos[1]
@@ -83,7 +53,6 @@ app.post('/generar-cartel', async (req, res) => {
     }, tipo, tamaño)
 
     const isRailway = process.env.RAILWAY_STATIC_URL !== undefined
-
     const browser = await puppeteer.launch({
       headless: 'new',
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
