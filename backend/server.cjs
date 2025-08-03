@@ -5,7 +5,6 @@ const path = require('path')
 const parse = require('csv-parse/sync')
 const puppeteer = require('puppeteer')
 const { PDFDocument } = require('pdf-lib')
-const cors = require('cors')
 
 const generarHTMLCartelesA6 = require('./generarCartelesA6.js')
 const { generarHTMLCartel } = require('./generadorHtml.cjs')
@@ -19,21 +18,19 @@ const ORIGENES_PERMITIDOS = [
   'https://generador-carteles-web.vercel.app'
 ]
 
-// ✅ Middleware CORS personalizado
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || ORIGENES_PERMITIDOS.includes(origin)) {
-      callback(null, true)
-    } else {
-      callback(new Error('CORS bloqueado para este origen'))
-    }
-  },
-  methods: ['POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
-}))
-
-// ✅ Respuesta a OPTIONS (preflight)
-app.options('*', cors())
+// ✅ Middleware CORS manual (más compatible que 'cors()' para Railway)
+app.use((req, res, next) => {
+  const origen = req.headers.origin
+  if (ORIGENES_PERMITIDOS.includes(origen)) {
+    res.setHeader('Access-Control-Allow-Origin', origen)
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  }
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204)
+  }
+  next()
+})
 
 app.use(bodyParser.json())
 
@@ -129,4 +126,3 @@ function buscarDepartamentoPorSkuDesdeCSV(sku) {
   const fila = filas.find(row => row['SKU ID']?.toString().trim() === sku)
   return fila?.['Dept ID']?.toString().trim() || 'Depto no disponible'
 }
-
