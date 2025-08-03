@@ -2,8 +2,9 @@ const fs = require('fs')
 const path = require('path')
 const { generarCodigoEAN13 } = require('./codigoBarras')
 
-async function generarHTMLCartel(datos) {
-  const htmlPath = path.join(__dirname, 'plantillas', 'cartel-a4.html')
+async function generarHTMLCartel(datos, tipo, tamaño) {
+  const plantilla = tamaño === 'A6' ? 'cartel-a6-en-a4.html' : 'cartel-a4.html'
+  const htmlPath = path.join(__dirname, 'plantillas', plantilla)
   let template = fs.readFileSync(htmlPath, 'utf8')
 
   const {
@@ -18,7 +19,10 @@ async function generarHTMLCartel(datos) {
     sku
   } = datos
 
-  const barcodeBase64 = await generarCodigoEAN13(sku)
+  const buffer = await generarCodigoEAN13(sku)
+  const barcodeBase64 = buffer.length
+    ? `data:image/png;base64,${buffer.toString('base64')}`
+    : ''
 
   const [precioFinalEntero, precioFinalDecimales] = precioFinal.toFixed(2).split('.')
   const [precioOriginalEntero, precioOriginalDecimales] = precioOriginal.toFixed(2).split('.')
@@ -37,6 +41,8 @@ async function generarHTMLCartel(datos) {
     .replace(/{{departamento}}/g, departamento)
     .replace(/{{item}}/g, item)
     .replace(/{{barcode}}/g, barcodeBase64)
+
+  console.log('Barcode base64:', barcodeBase64.slice(0, 100))
 
   return template
 }

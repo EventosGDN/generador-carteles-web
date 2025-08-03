@@ -5,52 +5,59 @@ const { generarHTMLCartel } = require('./generadorHtml')
 const puppeteer = require('puppeteer')
 const fs = require('fs')
 const parse = require('csv-parse/sync')
+const { PDFDocument } = require('pdf-lib')
 
 const app = express()
 
-// 🔓 CORS liberado temporalmente para test
 app.use(cors())
 app.options('*', cors())
-
 app.use(bodyParser.json())
 
 app.post('/generar-cartel', async (req, res) => {
   try {
     const { datos, tipo, tamaño } = req.body
-    console.log('Datos recibidos:', datos)
-
-    const partes = datos.match(/(?:[^,"']+|"(?:\\.|[^"])*"|'(?:\\.|[^'])*')+/g)
-    const campos = partes.map(s => s.trim().replace(/^"|"$/g, ''))
-
-    const desde = campos[0]
-    const hasta = campos[1]
-    const sku = campos[2]
-    const descripcion = campos[3]
-
-    const precioOriginal = parseFloat(`${campos[4].replace('$', '')}.${campos[5]}`)
-    const precioFinal = parseFloat(`${campos[6].replace('$', '')}.${campos[7]}`)
-
-    if (isNaN(precioOriginal) || isNaN(precioFinal)) {
-      throw new Error('Precio inválido')
+    if (!datos) {
+      console.error('⚠️ datos está undefined en el servidor')
+      return res.status(400).send('Faltan los datos')
     }
 
-    const codigoBarras = campos[8]
-    const descuento = tipo === '%' ? Math.round(100 - (precioFinal * 100) / precioOriginal) : null
+    const lineas = datos.split('\n').map(l => l.trim()).filter(Boolean)
+    const paginas = []
 
-    const item = sku
-    const departamento = buscarDepartamentoPorSkuDesdeCSV(sku)
+    for (const linea of lineas) {
+      const partes = linea.match(/(?:[^,"']+|"(?:\\.|[^"])*"|'(?:\\.|[^'])*')+/g)
+      const campos = partes.map(s => s.trim().replace(/^"|"$/g, ''))
 
-    const htmlFinal = await generarHTMLCartel({
-      descripcion,
-      precioOriginal,
-      precioFinal,
-      descuento,
-      sku: codigoBarras,
-      desde,
-      hasta,
-      departamento,
-      item
-    }, tipo, tamaño)
+      const desde = campos[0]
+      const hasta = campos[1]
+      const sku = campos[2]
+      const descripcion = campos[3]
+      const precioOriginal = parseFloat(`${campos[4].replace('$', '')}.${campos[5]}`)
+      const precioFinal = parseFloat(`${campos[6].replace('$', '')}.${campos[7]}`)
+
+      if (isNaN(precioOriginal) || isNaN(precioFinal)) {
+        throw new Error('Precio inválido')
+      }
+
+      const codigoBarras = campos[8]
+      const descuento = tipo === '%' ? Math.round(100 - (precioFinal * 100) / precioOriginal) : null
+      const item = sku
+      const departamento = buscarDepartamentoPorSkuDesdeCSV(sku)
+
+      const html = await generarHTMLCartel({
+        descripcion,
+        precioOriginal,
+        precioFinal,
+        descuento,
+        sku: codigoBarras,
+        desde,
+        hasta,
+        departamento,
+        item
+      }, tipo, tamaño)
+
+      paginas.push(html)
+    }
 
     const isRailway = process.env.RAILWAY_STATIC_URL !== undefined
     const browser = await puppeteer.launch({
@@ -59,21 +66,36 @@ app.post('/generar-cartel', async (req, res) => {
       executablePath: isRailway ? '/usr/bin/chromium-browser' : undefined
     })
 
-    const page = await browser.newPage()
-    await page.setContent(htmlFinal, { waitUntil: 'networkidle0' })
-
-    const pdfBuffer = await page.pdf({
-      format: tamaño === 'A4' ? 'A4' : 'A6',
-      printBackground: true
-    })
+    const pdfBuffers = []
+    for (const html of paginas) {
+      const page = await browser.newPage()
+      await page.setContent(html, { waitUntil: 'networkidle0' })
+      const buffer = await page.pdf({
+        format: tamaño === 'A4' ? 'A4' : 'A6',
+        printBackground: true
+      })
+      pdfBuffers.push(buffer)
+      await page.close()
+    }
 
     await browser.close()
 
-    res.contentType('application/pdf')
-    res.send(pdfBuffer)
+    const pdfDoc = await PDFDocument.create()
+    for (const buffer of pdfBuffers) {
+      const doc = await PDFDocument.load(buffer)
+      const copied = await pdfDoc.copyPages(doc, doc.getPageIndices())
+      copied.forEach(p => pdfDoc.addPage(p))
+    }
+
+    const finalPdf = await pdfDoc.save()
+
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Disposition', 'inline; filename=carteles.pdf')
+    res.send(Buffer.from(finalPdf))
+
   } catch (err) {
     console.error('❌ Error en generación:', err)
-    res.status(500).send('Error generando cartel')
+    res.status(500).send('Error generando carteles')
   }
 })
 

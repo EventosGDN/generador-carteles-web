@@ -205,22 +205,20 @@
       font-size: 25px;
     }
 
-    .codigo-barras-posicionado {
-      position: absolute;
-      right: 2mm;
-      top: 248mm;
-      width: 40mm;
-      height: auto;
-    }
+.contenedor {
+  position: relative;
+}
 
-
-      .codigo-barras-posicionado {
+.codigo-barras-posicionado {
   position: absolute;
-  right: 20mm;
-  top: 260mm; /* ajustá según necesidad */
+  right: 15mm;
+  top: 255mm;
   width: 40mm;
   height: auto;
 }
+
+
+
 
   </style>
 </head>
@@ -278,7 +276,12 @@
     <div class="linea3">INCLUIDO</div>
   </div>
 
- <img class="codigo-barras-posicionado" src="data:image/png;base64,{{barcode}}" alt="Código de barras" />
+
+<img class="codigo-barras-posicionado" src="{{barcode}}" alt="Código de barras" />
+
+
+
+
 
 </body>
 </html>
