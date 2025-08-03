@@ -2,7 +2,7 @@
   "name": "generador-carteles-web",
   "version": "1.0.0",
   "scripts": {
-    "start": "node backend/server.js"
+    "start": "node backend/server.cjs"
   },
   "dependencies": {
     "body-parser": "^1.20.2",

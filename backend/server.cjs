@@ -7,7 +7,7 @@ const parse = require('csv-parse/sync')
 const puppeteer = require('puppeteer')
 const { PDFDocument } = require('pdf-lib')
 const generarHTMLCartelesA6 = require('./generarCartelesA6.js')
-const { generarHTMLCartel } = require('./generadorHtml.js') // el viejo generador A4
+const { generarHTMLCartel } = require('./generadorHtml.cjs') // el viejo generador A4
 const app = express()
 
 app.use(cors())
