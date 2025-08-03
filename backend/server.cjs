@@ -10,7 +10,25 @@ const generarHTMLCartelesA6 = require('./generarCartelesA6.js')
 const { generarHTMLCartel } = require('./generadorHtml.cjs') // el viejo generador A4
 const app = express()
 
-app.use(cors())
+const ORIGENES_PERMITIDOS = [
+  'https://generador-carteles-web.vercel.app',
+  'http://localhost:3000'
+]
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || ORIGENES_PERMITIDOS.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('CORS no permitido'))
+    }
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type']
+}))
+
+app.options('*', cors()) // ← esto habilita la respuesta a preflight OPTIONS
+
 app.use(bodyParser.json())
 
 app.post('/generar-cartel', async (req, res) => {
