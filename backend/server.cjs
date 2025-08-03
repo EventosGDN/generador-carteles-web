@@ -1,4 +1,3 @@
-const cors = require('cors')
 const express = require('express')
 const bodyParser = require('body-parser')
 const fs = require('fs')
@@ -7,30 +6,28 @@ const parse = require('csv-parse/sync')
 const puppeteer = require('puppeteer')
 const { PDFDocument } = require('pdf-lib')
 const generarHTMLCartelesA6 = require('./generarCartelesA6.js')
-const { generarHTMLCartel } = require('./generadorHtml.cjs') // el viejo generador A4
+const { generarHTMLCartel } = require('./generadorHtml.cjs')
+
 const app = express()
 
+// ✅ Lista de orígenes permitidos
 const ORIGENES_PERMITIDOS = [
-  'https://generador-carteles-web.vercel.app',
+  'http://127.0.0.1:5500',
   'http://localhost:3000',
-  'http://127.0.0.1:5500'
+  'https://generador-carteles-web.vercel.app'
 ]
 
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || ORIGENES_PERMITIDOS.includes(origin)) {
-      callback(null, true)
-    } else {
-      callback(new Error('CORS no permitido'))
-    }
-  },
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
-}
-
-app.use(cors(corsOptions))
-app.options('*', cors(corsOptions))
-
+// ✅ Middleware CORS manual
+app.use((req, res, next) => {
+  const origen = req.headers.origin
+  if (ORIGENES_PERMITIDOS.includes(origen)) {
+    res.header('Access-Control-Allow-Origin', origen)
+  }
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+  res.header('Access-Control-Allow-Headers', 'Content-Type')
+  if (req.method === 'OPTIONS') return res.sendStatus(200)
+  next()
+})
 
 app.use(bodyParser.json())
 
@@ -100,7 +97,7 @@ app.post('/generar-cartel', async (req, res) => {
       const page = await browser.newPage()
       await page.setContent(html, { waitUntil: 'networkidle0' })
       const buffer = await page.pdf({
-        format: 'A4', // usamos A4 siempre, porque A6 se acomoda dentro
+        format: 'A4',
         printBackground: true
       })
       const tempDoc = await PDFDocument.load(buffer)
