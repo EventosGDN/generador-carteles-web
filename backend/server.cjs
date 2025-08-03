@@ -1,16 +1,16 @@
 const cors = require('cors')
 const express = require('express')
 const bodyParser = require('body-parser')
-const { generarHTMLCartel } = require('./generadorHtml')
-const puppeteer = require('puppeteer')
 const fs = require('fs')
+const path = require('path')
 const parse = require('csv-parse/sync')
+const puppeteer = require('puppeteer')
 const { PDFDocument } = require('pdf-lib')
-
+const generarHTMLCartelesA6 = require('./generarCartelesA6.js')
+const { generarHTMLCartel } = require('./generadorHtml.js') // el viejo generador A4
 const app = express()
 
 app.use(cors())
-app.options('*', cors())
 app.use(bodyParser.json())
 
 app.post('/generar-cartel', async (req, res) => {
@@ -22,7 +22,7 @@ app.post('/generar-cartel', async (req, res) => {
     }
 
     const lineas = datos.split('\n').map(l => l.trim()).filter(Boolean)
-    const paginas = []
+    const datosCarteles = []
 
     for (const linea of lineas) {
       const partes = linea.match(/(?:[^,"']+|"(?:\\.|[^"])*"|'(?:\\.|[^'])*')+/g)
@@ -44,7 +44,7 @@ app.post('/generar-cartel', async (req, res) => {
       const item = sku
       const departamento = buscarDepartamentoPorSkuDesdeCSV(sku)
 
-      const html = await generarHTMLCartel({
+      datosCarteles.push({
         descripcion,
         precioOriginal,
         precioFinal,
@@ -54,9 +54,17 @@ app.post('/generar-cartel', async (req, res) => {
         hasta,
         departamento,
         item
-      }, tipo, tamaño)
+      })
+    }
 
-      paginas.push(html)
+    let paginasHTML = []
+    if (tamaño === 'A6') {
+      paginasHTML = await generarHTMLCartelesA6(datosCarteles)
+    } else {
+      for (const datos of datosCarteles) {
+        const html = await generarHTMLCartel(datos, tipo, tamaño)
+        paginasHTML.push(html)
+      }
     }
 
     const isRailway = process.env.RAILWAY_STATIC_URL !== undefined
@@ -66,29 +74,23 @@ app.post('/generar-cartel', async (req, res) => {
       executablePath: isRailway ? '/usr/bin/chromium-browser' : undefined
     })
 
-    const pdfBuffers = []
-    for (const html of paginas) {
+    const pdfDoc = await PDFDocument.create()
+    for (const html of paginasHTML) {
       const page = await browser.newPage()
       await page.setContent(html, { waitUntil: 'networkidle0' })
       const buffer = await page.pdf({
-        format: tamaño === 'A4' ? 'A4' : 'A6',
+        format: 'A4', // usamos A4 siempre, porque A6 se acomoda dentro
         printBackground: true
       })
-      pdfBuffers.push(buffer)
+      const tempDoc = await PDFDocument.load(buffer)
+      const copied = await pdfDoc.copyPages(tempDoc, tempDoc.getPageIndices())
+      copied.forEach(p => pdfDoc.addPage(p))
       await page.close()
     }
 
     await browser.close()
 
-    const pdfDoc = await PDFDocument.create()
-    for (const buffer of pdfBuffers) {
-      const doc = await PDFDocument.load(buffer)
-      const copied = await pdfDoc.copyPages(doc, doc.getPageIndices())
-      copied.forEach(p => pdfDoc.addPage(p))
-    }
-
     const finalPdf = await pdfDoc.save()
-
     res.setHeader('Content-Type', 'application/pdf')
     res.setHeader('Content-Disposition', 'inline; filename=carteles.pdf')
     res.send(Buffer.from(finalPdf))
@@ -99,10 +101,12 @@ app.post('/generar-cartel', async (req, res) => {
   }
 })
 
-app.listen(process.env.PORT || 3000, () => console.log('Servidor iniciado'))
+app.listen(process.env.PORT || 3000, () => {
+  console.log('Servidor iniciado')
+})
 
 function buscarDepartamentoPorSkuDesdeCSV(sku) {
-  const csvPath = './backend/base_deptos.csv'
+  const csvPath = path.join(__dirname, 'base_deptos.csv')
   if (!fs.existsSync(csvPath)) {
     console.error('❌ No se encontró base_deptos.csv en:', csvPath)
     return 'Depto no disponible'

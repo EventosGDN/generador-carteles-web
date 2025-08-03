@@ -42,8 +42,6 @@ async function generarHTMLCartel(datos, tipo, tamaño) {
     .replace(/{{item}}/g, item)
     .replace(/{{barcode}}/g, barcodeBase64)
 
-  console.log('Barcode base64:', barcodeBase64.slice(0, 100))
-
   return template
 }
 
