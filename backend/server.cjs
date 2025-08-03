@@ -13,11 +13,10 @@ const app = express()
 const ORIGENES_PERMITIDOS = [
   'https://generador-carteles-web.vercel.app',
   'http://localhost:3000',
-  'http://127.0.0.1:5500' // ← Agregalo acá
+  'http://127.0.0.1:5500'
 ]
 
-
-app.use(cors({
+const corsOptions = {
   origin: (origin, callback) => {
     if (!origin || ORIGENES_PERMITIDOS.includes(origin)) {
       callback(null, true)
@@ -27,9 +26,11 @@ app.use(cors({
   },
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type']
-}))
+}
 
-app.options('*', cors()) // ← esto habilita la respuesta a preflight OPTIONS
+app.use(cors(corsOptions))
+app.options('*', cors(corsOptions))
+
 
 app.use(bodyParser.json())
 
