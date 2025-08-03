@@ -5,39 +5,38 @@ const path = require('path')
 const parse = require('csv-parse/sync')
 const puppeteer = require('puppeteer')
 const { PDFDocument } = require('pdf-lib')
+const cors = require('cors')
+
 const generarHTMLCartelesA6 = require('./generarCartelesA6.js')
 const { generarHTMLCartel } = require('./generadorHtml.cjs')
 
 const app = express()
 
-// ✅ Lista de orígenes permitidos
+// ✅ Middleware CORS robusto (para Railway y local)
 const ORIGENES_PERMITIDOS = [
   'http://127.0.0.1:5500',
   'http://localhost:3000',
   'https://generador-carteles-web.vercel.app'
 ]
 
-// ✅ Middleware CORS manual
-app.use((req, res, next) => {
-  const origen = req.headers.origin
-  if (ORIGENES_PERMITIDOS.includes(origen)) {
-    res.header('Access-Control-Allow-Origin', origen)
-  }
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-  res.header('Access-Control-Allow-Headers', 'Content-Type')
-  if (req.method === 'OPTIONS') return res.sendStatus(200)
-  next()
-})
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || ORIGENES_PERMITIDOS.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('CORS bloqueado para este origen'))
+    }
+  },
+  methods: ['POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type']
+}))
 
 app.use(bodyParser.json())
 
 app.post('/generar-cartel', async (req, res) => {
   try {
     const { datos, tipo, tamaño } = req.body
-    if (!datos) {
-      console.error('⚠️ datos está undefined en el servidor')
-      return res.status(400).send('Faltan los datos')
-    }
+    if (!datos) return res.status(400).send('Faltan los datos')
 
     const lineas = datos.split('\n').map(l => l.trim()).filter(Boolean)
     const datosCarteles = []
@@ -53,9 +52,7 @@ app.post('/generar-cartel', async (req, res) => {
       const precioOriginal = parseFloat(`${campos[4].replace('$', '')}.${campos[5]}`)
       const precioFinal = parseFloat(`${campos[6].replace('$', '')}.${campos[7]}`)
 
-      if (isNaN(precioOriginal) || isNaN(precioFinal)) {
-        throw new Error('Precio inválido')
-      }
+      if (isNaN(precioOriginal) || isNaN(precioFinal)) throw new Error('Precio inválido')
 
       const codigoBarras = campos[8]
       const descuento = tipo === '%' ? Math.round(100 - (precioFinal * 100) / precioOriginal) : null
@@ -96,10 +93,7 @@ app.post('/generar-cartel', async (req, res) => {
     for (const html of paginasHTML) {
       const page = await browser.newPage()
       await page.setContent(html, { waitUntil: 'networkidle0' })
-      const buffer = await page.pdf({
-        format: 'A4',
-        printBackground: true
-      })
+      const buffer = await page.pdf({ format: 'A4', printBackground: true })
       const tempDoc = await PDFDocument.load(buffer)
       const copied = await pdfDoc.copyPages(tempDoc, tempDoc.getPageIndices())
       copied.forEach(p => pdfDoc.addPage(p))
@@ -125,10 +119,7 @@ app.listen(process.env.PORT || 3000, () => {
 
 function buscarDepartamentoPorSkuDesdeCSV(sku) {
   const csvPath = path.join(__dirname, 'base_deptos.csv')
-  if (!fs.existsSync(csvPath)) {
-    console.error('❌ No se encontró base_deptos.csv en:', csvPath)
-    return 'Depto no disponible'
-  }
+  if (!fs.existsSync(csvPath)) return 'Depto no disponible'
   const contenido = fs.readFileSync(csvPath)
   const filas = parse.parse(contenido, { columns: true })
   const fila = filas.find(row => row['SKU ID']?.toString().trim() === sku)
