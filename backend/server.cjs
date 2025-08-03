@@ -12,13 +12,14 @@ const { generarHTMLCartel } = require('./generadorHtml.cjs')
 
 const app = express()
 
-// ✅ Middleware CORS robusto (para Railway y local)
+// ✅ Lista blanca de orígenes permitidos
 const ORIGENES_PERMITIDOS = [
   'http://127.0.0.1:5500',
   'http://localhost:3000',
   'https://generador-carteles-web.vercel.app'
 ]
 
+// ✅ Middleware CORS personalizado
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || ORIGENES_PERMITIDOS.includes(origin)) {
@@ -30,6 +31,9 @@ app.use(cors({
   methods: ['POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type']
 }))
+
+// ✅ Respuesta a OPTIONS (preflight)
+app.options('*', cors())
 
 app.use(bodyParser.json())
 
@@ -125,3 +129,4 @@ function buscarDepartamentoPorSkuDesdeCSV(sku) {
   const fila = filas.find(row => row['SKU ID']?.toString().trim() === sku)
   return fila?.['Dept ID']?.toString().trim() || 'Depto no disponible'
 }
+
