@@ -11,15 +11,51 @@
   <div class="controles">
     <select id="tipoCartel">
       <option value="%">%</option>
-      <option value="2x1">2x1</option>
     </select>
     <select id="formato">
       <option value="A4">A4</option>
       <option value="A6">A6</option>
     </select>
-    <button onclick="generarCartel()">Generar Cartel</button>
+    <button onclick="generarCartel()">Generar CPT</button>
   </div>
   <div id="resultado"></div>
+
+
+  <h2>Cargar hasta 20 carteles</h2>
+<div class="tabla-carteles">
+  <table border="1">
+    <thead>
+      <tr>
+        <th>EAN/SKU</th>
+        <th>PRECIO</th>
+        <th>% DESC.</th>
+        <th>precio manual</th>
+        <th>Fecha inicio</th>
+        <th>Fecha final</th>
+        <th>TIPO DE CARTEL</th>
+        <th>MAS CLUB</th>
+        <th>A4</th>
+        <th>A6</th>
+        <th>DEPTO</th>
+        <th>DESCRIPCION</th>
+        <th>SKU</th>
+        <th>EAN</th>
+      </tr>
+    </thead>
+    <tbody id="tablaCartelesBody">
+    </tbody>
+  </table>
+</div>
+<div class="botones-manuales">
+  <button onclick="cargarDesdeTabla()">Generar Banderas Manuales</button>
+  <button class="boton-agregar" onclick="agregarFila()">+</button>
+</div>
+
+
+
+
+
+
   <script src="main.js"></script>
 </body>
 </html>

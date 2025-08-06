@@ -18,7 +18,6 @@ const ORIGENES_PERMITIDOS = [
   'https://generador-carteles-web.vercel.app'
 ]
 
-// ✅ Middleware CORS manual (más compatible que 'cors()' para Railway)
 app.use((req, res, next) => {
   const origen = req.headers.origin
   if (ORIGENES_PERMITIDOS.includes(origen)) {
@@ -31,6 +30,7 @@ app.use((req, res, next) => {
   }
   next()
 })
+
 
 app.use(bodyParser.json())
 
@@ -126,3 +126,25 @@ function buscarDepartamentoPorSkuDesdeCSV(sku) {
   const fila = filas.find(row => row['SKU ID']?.toString().trim() === sku)
   return fila?.['Dept ID']?.toString().trim() || 'Depto no disponible'
 }
+
+app.get('/base-productos', (req, res) => {
+  try {
+    const ruta = path.join(__dirname, 'base_deptos.csv')
+    if (!fs.existsSync(ruta)) {
+      return res.status(404).send('base_deptos.csv no encontrado')
+    }
+    const contenido = fs.readFileSync(ruta, 'utf8')
+    const productos = parse.parse(contenido, { columns: true, skip_empty_lines: true })
+    const resultado = productos.map(p => ({
+  sku: p['SKU ID']?.trim(),
+  ean: p['Código SKU ID']?.trim(),
+  descripcion: p['SKU DESC']?.trim(),
+  depto: p['Dept ID']?.trim()
+}))
+
+    res.json(resultado)
+  } catch (error) {
+    console.error('❌ Error al leer base_deptos.csv:', error)
+    res.status(500).send('Error procesando base de productos')
+  }
+})
