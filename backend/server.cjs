@@ -83,12 +83,11 @@ app.post('/generar-cartel', async (req, res) => {
       }
     }
 
-    const isRailway = process.env.RAILWAY_STATIC_URL !== undefined
     const browser = await puppeteer.launch({
-      headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      executablePath: isRailway ? '/usr/bin/chromium-browser' : undefined
-    })
+  headless: true,
+  args: ['--no-sandbox', '--disable-setuid-sandbox']
+})
+
 
     const pdfDoc = await PDFDocument.create()
     for (const html of paginasHTML) {
