@@ -2,7 +2,7 @@ const isLocalhost = location.hostname === '127.0.0.1' || location.hostname === '
 
 const URL_BACKEND = isLocalhost
   ? 'http://localhost:3000'
-  : 'https://generador-carteles-backend.up.railway.app'
+  : 'https://generador-carteles-web-production.up.railway.app'
 
 async function generarCartel() {
   const datos = document.getElementById('inputDatos').value
