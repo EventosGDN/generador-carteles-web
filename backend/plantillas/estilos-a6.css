@@ -1,9 +1,10 @@
-@font-face {
-  font-family: 'Miso';
-  src: url('file:///app/fonts/miso-bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
+@font-face{
+  font-family:'Miso';
+  src:url('data:font/ttf;base64,{{MISO_BASE64}}') format('truetype');
+  font-weight:700;
+  font-style:normal;
 }
+
 
 
 body {
@@ -88,10 +89,13 @@ body {
 }
 
 .valor-descuento {
-  font-size: 100px;
+  font-size: 200px;
   letter-spacing: -8px;
-  font-weight: normal; /* ✅ quita el negrita */
+  -webkit-text-stroke: 1px black; /* contorno fino */
+  color: white;
+  font-weight: normal;
 }
+
 
 .bloque-precios {
   display: flex;

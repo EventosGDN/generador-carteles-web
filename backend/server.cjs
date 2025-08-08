@@ -84,6 +84,24 @@ app.post('/generar-cartel', async (req, res) => {
         paginasHTML.push(html)
       }
     }
+    const STYLE = `
+<style>
+@font-face{
+  font-family:'Miso';
+  src:url('data:font/ttf;base64,{{MISO_BASE64}}') format('truetype');
+  font-weight:700; font-style:normal;
+}
+body{margin:0;width:210mm;height:297mm;position:relative;font-family:'Miso',sans-serif;}
+</style>`
+
+function ensureFullHtml(h) {
+  const hasHtml = /<html[\s>]/i.test(h)
+  return hasHtml ? h : `<!DOCTYPE html><html lang="es"><head>${STYLE}</head><body>${h}</body></html>`
+}
+
+// ahora sí, reemplazamos el placeholder:
+paginasHTML = paginasHTML.map(h => h.replace(/{{MISO_BASE64}}/g, misoBase64))
+
 // Inyectar la fuente Miso en todas las páginas
 paginasHTML = paginasHTML.map(h => h.replace(/{{MISO_BASE64}}/g, misoBase64))
 
