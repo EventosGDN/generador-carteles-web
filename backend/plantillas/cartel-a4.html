@@ -256,6 +256,66 @@ body { font-family:'Miso', sans-serif; font-synthesis:none; }
 /* ===== BLOQUE DE INFO (subirlo un toque) ===== */
 .info{ margin-top: 6mm; margin-bottom: 4mm; } /* antes 10mm y 10mm */
 
+
+/* === Alinear $ y C/U con la parte alta del número === */
+.precio-final-grande .precio-contenedor,
+.precio-original-cruz .precio-contenedor {
+  align-items: flex-start;                 /* sube el bloque de símbolos */
+}
+
+.precio-final-grande .precio-numeros,
+.precio-original-cruz .precio-numeros {
+  display: inline-flex;
+  align-items: baseline;                   /* entero + decimales alineados */
+}
+
+/* Ajuste fino solo de la columna de símbolos */
+.precio-final-grande .simbolos,
+.precio-original-cruz .simbolos {
+  align-items: flex-end;
+  line-height: 1;
+  transform: translateY(-8px);             /* súbelo/ bájalo: -6 a -10px */
+}
+
+.precio-final-grande .simbolos .peso,
+.precio-original-cruz .simbolos .peso {
+  font-size: 16px;                         /* discreto para no dominar */
+}
+
+.precio-final-grande .simbolos .cu,
+.precio-original-cruz .simbolos .cu {
+  font-size: 12px;
+  margin-top: 2px;                         /* queda justo bajo el $ */
+}
+
+/* Mantener números parejos y un pelín más altos */
+.precio-final-grande .entero,
+.precio-original-cruz .entero { 
+  line-height: .95; 
+  position: relative; 
+  top: -2px;                                /* micro-ajuste vertical */
+}
+.precio-final-grande .decimales,
+.precio-original-cruz .decimales {
+  position: relative; 
+  top: -3px;
+}
+
+/* (Opcional) asegurar Regular en números para no engordar */
+.precio-final-grande .entero,
+.precio-final-grande .decimales,
+.precio-original-cruz .entero,
+.precio-original-cruz .decimales { 
+  font-weight: 400; 
+}
+
+/* === Bloque azul: interlineado normal y menos aire === */
+.info {
+  line-height: 1.2;
+  margin-top: 6mm;                         /* antes 10mm */
+  margin-bottom: 4mm;                      /* antes 10mm */
+}
+
   </style>
 </head>
 <body>
