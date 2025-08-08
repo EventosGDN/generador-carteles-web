@@ -316,6 +316,38 @@ body { font-family:'Miso', sans-serif; font-synthesis:none; }
   margin-bottom: 4mm;                      /* antes 10mm */
 }
 
+/* === Alinear columna ($, C/U) con el tope del número === */
+/* Precio final */
+.precio-final-grande .precio-contenedor{ align-items:flex-start; }
+.precio-final-grande .precio-numeros{ display:inline-flex; align-items:baseline; }
+.precio-final-grande .simbolos{
+  line-height:1;
+  align-items:flex-end;
+  transform: translateY(-0.38em);   /* súbelo/bájalo: -0.30 a -0.45 */
+}
+.precio-final-grande .simbolos .peso{ font-size:16px; }
+.precio-final-grande .simbolos .cu{ font-size:12px; margin-top:2px; }
+
+/* Precio tachado */
+.precio-original-cruz .precio-contenedor{ align-items:flex-start; }
+.precio-original-cruz .precio-numeros{ display:inline-flex; align-items:baseline; }
+.precio-original-cruz .simbolos{
+  line-height:1;
+  align-items:flex-end;
+  transform: translateY(-0.36em);   /* ajustá fino para este bloque */
+}
+.precio-original-cruz .simbolos .peso{ font-size:16px; }
+.precio-original-cruz .simbolos .cu{ font-size:12px; margin-top:2px; }
+
+/* Afinar baseline de los números (sin cambiar tamaños distintos) */
+.precio-final-grande .entero,
+.precio-original-cruz .entero{ line-height:.95; position:relative; top:-2px; }
+.precio-final-grande .decimales,
+.precio-original-cruz .decimales{ position:relative; top:-3px; }
+
+/* Bloque de info: interlineado normal */
+.info{ line-height:1.2; }
+
   </style>
 </head>
 <body>
