@@ -224,6 +224,20 @@ body { font-family:'Miso', sans-serif; font-synthesis:none; }
 }
 
 
+/* 1) PRECIO FINAL – subirlo un poco y alinear por baseline */
+.precio-final-grande .precio-contenedor { align-items: baseline; }
+.precio-final-grande .precio-numeros { display: inline-flex; align-items: baseline; }
+.precio-final-grande .entero { line-height: .9; position: relative; top: -2px; }  /* sube 2px */
+.precio-final-grande .decimales { position: relative; top: -3px; }                /* ajustá -2/-4px a gusto */
+
+/* 2) PRECIO TACHADO – mismo criterio */
+.precio-original-cruz .precio-contenedor { align-items: baseline; }
+.precio-original-cruz .precio-numeros { display: inline-flex; align-items: baseline; }
+.precio-original-cruz .entero { line-height: .9; position: relative; top: -2px; }
+.precio-original-cruz .decimales { position: relative; top: -3px; }
+
+/* 3) DESCUENTO grande – levantar el bloque */
+.valor-descuento { position: relative; top: -6px; line-height: .9; }  /* probá -4 a -8px */
 
 
   </style>
