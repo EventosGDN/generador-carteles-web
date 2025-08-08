@@ -90,6 +90,7 @@ body {
 .valor-descuento {
   font-size: 100px;
   letter-spacing: -8px;
+  font-weight: normal; /* ✅ quita el negrita */
 }
 
 .bloque-precios {
