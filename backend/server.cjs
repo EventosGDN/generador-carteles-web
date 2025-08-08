@@ -1,3 +1,11 @@
+// arriba:
+const fontBoldPath  = path.join(__dirname, 'fonts', 'miso-bold.ttf')
+const fontRegPath   = path.join(__dirname, 'fonts', 'miso-regular.ttf')
+const fontLightPath = path.join(__dirname, 'fonts', 'miso-light.ttf')
+
+const misoBoldBase64  = fs.readFileSync(fontBoldPath).toString('base64')
+const misoRegBase64   = fs.readFileSync(fontRegPath).toString('base64')
+const misoLightBase64 = fs.readFileSync(fontLightPath).toString('base64')
 const express = require('express')
 const bodyParser = require('body-parser')
 const fs = require('fs')
@@ -84,26 +92,32 @@ app.post('/generar-cartel', async (req, res) => {
         paginasHTML.push(html)
       }
     }
-    const STYLE = `
+
+    // reemplazá tu STYLE por este:
+const STYLE = `
 <style>
-@font-face{
-  font-family:'Miso';
-  src:url('data:font/ttf;base64,{{MISO_BASE64}}') format('truetype');
-  font-weight:700; font-style:normal;
-}
-body{margin:0;width:210mm;height:297mm;position:relative;font-family:'Miso',sans-serif;}
+@font-face{ font-family:'Miso'; src:url('data:font/ttf;base64,{{MISO_LIGHT_BASE64}}') format('truetype'); font-weight:300; font-style:normal; }
+@font-face{ font-family:'Miso'; src:url('data:font/ttf;base64,{{MISO_REGULAR_BASE64}}') format('truetype'); font-weight:400; font-style:normal; }
+@font-face{ font-family:'Miso'; src:url('data:font/ttf;base64,{{MISO_BOLD_BASE64}}') format('truetype'); font-weight:700; font-style:normal; }
+body{margin:0;width:210mm;height:297mm;position:relative;font-family:'Miso',sans-serif;font-synthesis:none;}
 </style>`
+
 
 function ensureFullHtml(h) {
   const hasHtml = /<html[\s>]/i.test(h)
   return hasHtml ? h : `<!DOCTYPE html><html lang="es"><head>${STYLE}</head><body>${h}</body></html>`
 }
 
-// ahora sí, reemplazamos el placeholder:
-paginasHTML = paginasHTML.map(h => h.replace(/{{MISO_BASE64}}/g, misoBase64))
+// después de construir paginasHTML:
+paginasHTML = paginasHTML.map(ensureFullHtml) // ✅ primero envolver
 
-// Inyectar la fuente Miso en todas las páginas
-paginasHTML = paginasHTML.map(h => h.replace(/{{MISO_BASE64}}/g, misoBase64))
+// ✅ un solo replace con las tres variantes
+paginasHTML = paginasHTML.map(h => h
+  .replace(/{{MISO_LIGHT_BASE64}}/g,  misoLightBase64)
+  .replace(/{{MISO_REGULAR_BASE64}}/g, misoRegBase64)
+  .replace(/{{MISO_BOLD_BASE64}}/g,    misoBoldBase64)
+)
+
 
 const browser = await puppeteer.launch({
   headless: true,
