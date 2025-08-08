@@ -98,6 +98,7 @@ body {
   letter-spacing: -8px;
   color: white;
   font-weight: 400;
+  transform: translateY(-16mm); /* sube el bloque, probá con -3mm o -5mm */
 }
 
 
