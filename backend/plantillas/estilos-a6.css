@@ -91,7 +91,6 @@ body {
 .valor-descuento {
   font-size: 100px;
   letter-spacing: -8px;
-  -webkit-text-stroke: 1px black; /* contorno fino */
   color: white;
   font-weight: normal;
 }
