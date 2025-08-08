@@ -239,6 +239,22 @@ body { font-family:'Miso', sans-serif; font-synthesis:none; }
 /* 3) DESCUENTO grande – levantar el bloque */
 .valor-descuento { position: relative; top: -6px; line-height: .9; }  /* probá -4 a -8px */
 
+/* ===== PRECIO FINAL ===== */
+.precio-final-grande .precio-contenedor { align-items: baseline; }
+.precio-final-grande .precio-numeros { display: inline-flex; align-items: baseline; }
+.precio-final-grande .entero   { line-height: .9; position: relative; top: -2px; }
+.precio-final-grande .decimales{ position: relative; top: -3px; }
+.precio-final-grande .simbolos { align-items: flex-end; line-height: 1; transform: translateY(-2px); }
+
+/* ===== PRECIO TACHADO ===== */
+.precio-original-cruz .precio-contenedor { align-items: baseline; }
+.precio-original-cruz .precio-numeros { display: inline-flex; align-items: baseline; }
+.precio-original-cruz .entero   { line-height: .9; position: relative; top: -2px; }
+.precio-original-cruz .decimales{ position: relative; top: -3px; }
+.precio-original-cruz .simbolos { align-items: flex-end; line-height: 1; transform: translateY(-2px); }
+
+/* ===== BLOQUE DE INFO (subirlo un toque) ===== */
+.info{ margin-top: 6mm; margin-bottom: 4mm; } /* antes 10mm y 10mm */
 
   </style>
 </head>
