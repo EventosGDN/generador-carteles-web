@@ -227,3 +227,27 @@ body {
   width: 20mm;
   height: auto;
 }
+
+/* ===== A6: alinear $ y C/U con la parte alta del número ===== */
+.precio-final-grande .precio-contenedor,
+.precio-original-cruz .precio-contenedor { align-items: flex-start !important; }
+
+.precio-final-grande .precio-numeros,
+.precio-original-cruz .precio-numeros { display: inline-flex; align-items: baseline !important; }
+
+/* columna de símbolos ($ y C/U) – mismo truco que en A4 */
+.precio-final-grande .simbolos,
+.precio-original-cruz .simbolos {
+  line-height: 1;
+  align-items: flex-end;
+  transform: translateY(0.55em) !important;   /* ajustá a 0.50–0.60 si hace falta */
+}
+
+/* microajustes de baseline para los dígitos */
+.precio-final-grande .entero,
+.precio-original-cruz .entero { line-height: .95; position: relative; top: -2px; }
+.precio-final-grande .decimales,
+.precio-original-cruz .decimales { position: relative; top: -3px; }
+
+/* ===== A6: bloque de info con interlineado normal ===== */
+.info { line-height: 1.2 !important; margin-top: 6mm; margin-bottom: 4mm; }
