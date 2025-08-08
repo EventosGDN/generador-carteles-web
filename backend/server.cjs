@@ -8,6 +8,8 @@ const { PDFDocument } = require('pdf-lib')
 
 const generarHTMLCartelesA6 = require('./generarCartelesA6.js')
 const { generarHTMLCartel } = require('./generadorHtml.cjs')
+const fontPath = path.join(__dirname, 'fonts', 'miso-bold.ttf')
+const misoBase64 = fs.readFileSync(fontPath).toString('base64')
 
 const app = express()
 
@@ -82,25 +84,27 @@ app.post('/generar-cartel', async (req, res) => {
         paginasHTML.push(html)
       }
     }
+// Inyectar la fuente Miso en todas las páginas
+paginasHTML = paginasHTML.map(h => h.replace(/{{MISO_BASE64}}/g, misoBase64))
 
-    const browser = await puppeteer.launch({
+const browser = await puppeteer.launch({
   headless: true,
   args: ['--no-sandbox', '--disable-setuid-sandbox']
 })
 
+const pdfDoc = await PDFDocument.create()
+for (const html of paginasHTML) {
+  const page = await browser.newPage()
+  await page.setContent(html, { waitUntil: 'domcontentloaded' })
+  await page.evaluateHandle('document.fonts.ready')  // ✅ esperar a que carguen las fuentes
+  const buffer = await page.pdf({ format: 'A4', printBackground: true })
+  const tempDoc = await PDFDocument.load(buffer)
+  const copied = await pdfDoc.copyPages(tempDoc, tempDoc.getPageIndices())
+  copied.forEach(p => pdfDoc.addPage(p))
+  await page.close()
+}
+await browser.close()
 
-    const pdfDoc = await PDFDocument.create()
-    for (const html of paginasHTML) {
-      const page = await browser.newPage()
-      await page.setContent(html, { waitUntil: 'networkidle0' })
-      const buffer = await page.pdf({ format: 'A4', printBackground: true })
-      const tempDoc = await PDFDocument.load(buffer)
-      const copied = await pdfDoc.copyPages(tempDoc, tempDoc.getPageIndices())
-      copied.forEach(p => pdfDoc.addPage(p))
-      await page.close()
-    }
-
-    await browser.close()
 
     const finalPdf = await pdfDoc.save()
     res.setHeader('Content-Type', 'application/pdf')
