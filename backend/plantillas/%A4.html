@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+  @font-face{ font-family:'Miso'; src:url('data:font/ttf;base64,{{MISO_LIGHT_BASE64}}') format('truetype');  font-weight:300; font-style:normal; }
+  @font-face{ font-family:'Miso'; src:url('data:font/ttf;base64,{{MISO_REGULAR_BASE64}}') format('truetype'); font-weight:400; font-style:normal; }
+  @font-face{ font-family:'Miso'; src:url('data:font/ttf;base64,{{MISO_BOLD_BASE64}}') format('truetype');    font-weight:700; font-style:normal; }
+
+  body{ margin:0; padding:0; width:210mm; height:297mm; box-sizing:border-box; position:relative; font-family:'Miso',sans-serif; font-synthesis:none; }
+
+  .contenedor{ padding:20mm; padding-top:70mm; display:flex; flex-direction:column; align-items:center; }
+  .titulo{ font-size:42pt; font-weight:bold; text-align:center; margin:18px 0 70px; }
+
+  .descuento{ display:flex; width:200mm; margin-left:0.5cm; margin-bottom:12mm; height:70mm; position:relative; top:-8mm; }
+
+  .lado-blanco{
+    width:25%; background:#fff; display:flex; align-items:center; justify-content:center;
+    border:2px solid #000; border-right:none; position:relative;
+  }
+  .lado-blanco::before{
+    content:''; position:absolute; right:-50px; top:50%; transform:translateY(-50%);
+    width:0; height:0; border-top:130px solid transparent; border-bottom:130px solid transparent; border-left:50px solid #fff;
+  }
+  .texto-lleva{ font-size:50px; font-weight:bold; text-align:center; line-height:1.2; }
+
+  .lado-negro{
+    position:relative;            /* referencia del % */
+    width:75%; background:#000; color:#fff; display:block; border:2px solid #000; border-left:none;
+  }
+
+  /* ====== POSICIÓN DEL %  ======
+     +mm baja / -mm sube desde el centro del bloque negro */
+  .valor-descuento{
+    position:absolute;
+    left:50%;
+    top:calc(50% + 1mm);          /* <- AJUSTÁ ESTE VALOR */
+    transform:translate(-50%, -50%);
+    margin:0;
+    line-height:.9;
+    font-size:200px;
+    letter-spacing:-8px;
+    font-weight:500;
+    color:#fff;
+  }
+
+  .bloque-precios{ display:flex; flex-direction:column; width:100%; margin-top:3mm; gap:5mm; }
+  .precio-final-grande{ display:flex; justify-content:center; }
+  .precio-contenedor{ display:flex; align-items:flex-start; }
+  .simbolos{ display:flex; flex-direction:column; align-items:center; font-size:20px; margin-right:4px; line-height:1; }
+  .precio-numeros{ display:inline-flex; align-items:baseline; }
+  .entero{ font-size:60px; line-height:.95; position:relative; top:-2px; }
+  .decimales{ font-size:18px; margin-left:2px; position:relative; top:-3px; }
+
+  .precio-original-cruz{ position:relative; display:inline-block; margin-left:5mm; width:max-content; max-width:55mm; }
+  .precio-original-cruz::before,
+  .precio-original-cruz::after{
+    content:''; position:absolute; top:50%; left:0; width:100%; height:100%;
+    border-top:1.5px solid #000; transform-origin:center; pointer-events:none; box-sizing:border-box;
+  }
+  .precio-original-cruz::before{ transform:rotate(15deg); }
+  .precio-original-cruz::after{  transform:rotate(-15deg); }
+
+  .precio-final-grande .simbolos,
+  .precio-original-cruz .simbolos{ align-items:flex-end; transform:translateY(-2px); }
+  .simbolos .peso{ font-size:16px; }
+  .simbolos .cu{ font-size:12px; margin-top:2px; }
+
+  .info{ text-align:center; font-size:18px; line-height:1.2; margin-top:6mm; margin-bottom:4mm; }
+
+  .sello-html-ajustado{
+    position:absolute; right:20mm; top:215mm; width:30mm; height:30mm; background:#000; border-radius:50%;
+    color:#fff; display:flex; flex-direction:column; justify-content:center; align-items:center;
+    text-align:center; letter-spacing:-.2px; line-height:1.05;
+  }
+  .sello-html-ajustado .linea1{ font-weight:400; font-size:22px; margin-bottom:1px; }
+  .sello-html-ajustado .linea2{ font-weight:700; font-size:25px; margin-bottom:1px; }
+  .sello-html-ajustado .linea3{ font-weight:700; font-size:25px; }
+
+  .contenedor{ position:relative; }
+  .codigo-barras-posicionado{ position:absolute; right:15mm; top:255mm; width:40mm; height:auto; }
+  </style>
+</head>
+<body>
+  <div class="contenedor">
+    <div class="titulo">{{descripcion}}</div>
+
+    <div class="descuento">
+      <div class="lado-blanco"><span class="texto-lleva">LLEVÁS<br>1X</span></div>
+      <div class="lado-negro">
+        <span class="valor-descuento">-{{descuento}}%</span>
+      </div>
+    </div>
+
+    <div class="bloque-precios">
+      <div class="precio-final-grande">
+        <div class="precio-contenedor">
+          <div class="simbolos"><div class="peso">$</div><div class="cu">C/U</div></div>
+          <div class="precio-numeros"><span class="entero">{{precioFinalEntero}}</span><span class="decimales">{{precioFinalDecimales}}</span></div>
+        </div>
+      </div>
+
+      <div class="precio-original-cruz">
+        <div class="precio-contenedor">
+          <div class="simbolos"><div class="peso">$</div><div class="cu">C/U</div></div>
+          <div class="precio-numeros"><span class="entero">{{precioOriginalEntero}}</span><span class="decimales">{{precioOriginalDecimales}}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info">
+      Origen: Argentina<br>
+      VIGENCIA<br>
+      del {{desde}} al {{hasta}}<br>
+      dept: {{departamento}} - item: {{item}}
+    </div>
+  </div>
+
+  <div class="sello-html-ajustado">
+    <div class="linea1">PRECIO CON</div>
+    <div class="linea2">DESCUENTO</div>
+    <div class="linea3">INCLUIDO</div>
+  </div>
+
+  <img class="codigo-barras-posicionado" src="{{barcode}}" alt="Código de barras" />
+</body>
+</html>
