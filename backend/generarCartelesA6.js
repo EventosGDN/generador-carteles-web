@@ -1,76 +1,58 @@
-const fs = require('fs')
-const path = require('path')
-const { generarCodigoEAN13 } = require('./codigoBarras')
+const fs = require('fs');
+const path = require('path');
+const { generarCodigoEAN13 } = require('./codigoBarras');
 
-async function generarHTMLCartelesA6(listaDeDatos) {
-  const plantillaPath = path.join(__dirname, 'plantillas', 'cartel-a6-en-a4.html')
-  let plantilla = fs.readFileSync(plantillaPath, 'utf8')
-  const estilosPath = path.join(__dirname, 'plantillas', 'estilos-a6.css')
-  const estilos = fs.readFileSync(estilosPath, 'utf8')
+const PLANTILLA = fs.readFileSync(
+  path.join(__dirname, 'plantillas', '%_A6.html'),
+  'utf8'
+);
 
-  const bloques = []
-  for (let i = 0; i < listaDeDatos.length; i++) {
-    const datos = listaDeDatos[i]
-    const {
-      descripcion,
-      precioOriginal,
-      precioFinal,
-      descuento,
-      desde,
-      hasta,
-      departamento,
-      item,
-      sku
-    } = datos
+async function generarHTMLCartelesA6(lista) {
+  const bloques = [];
 
-    const buffer = await generarCodigoEAN13(sku)
-    const barcodeBase64 = buffer.length
-      ? `data:image/png;base64,${buffer.toString('base64')}`
-      : ''
+  for (let i = 0; i < lista.length; i++) {
+    const d = lista[i] || {};
 
-    const [precioFinalEntero, precioFinalDecimales] = precioFinal.toFixed(2).split('.')
-    const [precioOriginalEntero, precioOriginalDecimales] = precioOriginal.toFixed(2).split('.')
-    const desdeStr = desde instanceof Date ? desde.toLocaleDateString('es-AR') : desde?.toString() || ''
-    const hastaStr = hasta instanceof Date ? hasta.toLocaleDateString('es-AR') : hasta?.toString() || ''
+    // precios
+    const [pfEnt, pfDec] = Number(d.precioFinal ?? 0).toFixed(2).split('.');
+    const [poEnt, poDec] = Number(d.precioOriginal ?? 0).toFixed(2).split('.');
 
-    const top = (Math.floor((i % 4) / 2) * 148.5).toFixed(1)
-    const left = (i % 2 === 0 ? 0 : 105).toFixed(1)
+    // fechas
+    const fmt = new Intl.DateTimeFormat('es-AR');
+    const desde = d.desde instanceof Date ? fmt.format(d.desde) : (d.desde ?? '');
+    const hasta = d.hasta instanceof Date ? fmt.format(d.hasta) : (d.hasta ?? '');
 
-    const bloque = plantilla
-      .replace(/{{descripcion}}/g, descripcion)
-      .replace(/{{precioOriginalEntero}}/g, precioOriginalEntero)
-      .replace(/{{precioOriginalDecimales}}/g, precioOriginalDecimales)
-      .replace(/{{precioFinalEntero}}/g, precioFinalEntero)
-      .replace(/{{precioFinalDecimales}}/g, precioFinalDecimales)
-      .replace(/{{descuento}}/g, descuento ?? '')
-      .replace(/{{desde}}/g, desdeStr)
-      .replace(/{{hasta}}/g, hastaStr)
-      .replace(/{{departamento}}/g, departamento)
-      .replace(/{{item}}/g, item)
-      .replace(/{{barcode}}/g, barcodeBase64)
+    // código de barras
+    let barcode = '';
+    try {
+      const buf = await generarCodigoEAN13(d.sku);
+      if (buf?.length) barcode = `data:image/png;base64,${buf.toString('base64')}`;
+    } catch {}
+
+    // posición A6 (4 por A4)
+    const top  = (Math.floor((i % 4) / 2) * 148.5).toFixed(1);
+    const left = (i % 2 === 0 ? 0 : 105).toFixed(1);
+
+    const html = PLANTILLA
       .replace('class="contenedor-a6"', `class="contenedor-a6" style="top:${top}mm; left:${left}mm"`)
+      .replace(/{{descripcion}}/g, d.descripcion ?? '')
+      .replace(/{{descuento}}/g, String(d.descuento ?? ''))
+      .replace(/{{precioFinalEntero}}/g, pfEnt).replace(/{{precioFinalDecimales}}/g, pfDec)
+      .replace(/{{precioOriginalEntero}}/g, poEnt).replace(/{{precioOriginalDecimales}}/g, poDec)
+      .replace(/{{desde}}/g, desde).replace(/{{hasta}}/g, hasta)
+      .replace(/{{departamento}}/g, d.departamento ?? '')
+      .replace(/{{item}}/g, d.item ?? '')
+      .replace(/{{barcode}}/g, barcode);
 
-    bloques.push(bloque)
+    bloques.push(html);
   }
 
-  const paginas = []
+  // empaquetar cada 4 A6 por página A4
+  const paginas = [];
   for (let i = 0; i < bloques.length; i += 4) {
-    const html = `
-      <!DOCTYPE html>
-      <html lang="es">
-      <head>
-        <meta charset="UTF-8" />
-        <style>${estilos}</style>
-      </head>
-      <body>
-        ${bloques.slice(i, i + 4).join('\n')}
-      </body>
-      </html>
-    `
-    paginas.push(html)
+    paginas.push(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"></head><body>${bloques.slice(i, i+4).join('')}</body></html>`);
   }
-
-  return paginas
+  return paginas;
 }
 
-module.exports = generarHTMLCartelesA6
+module.exports = generarHTMLCartelesA6;

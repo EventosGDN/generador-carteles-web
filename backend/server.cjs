@@ -1,4 +1,3 @@
-// backend/server.cjs
 const express = require('express')
 const bodyParser = require('body-parser')
 const fs = require('fs')
@@ -12,7 +11,7 @@ const { generarHTMLCartel } = require('./generadorHtml.cjs')
 
 const app = express()
 
-// === Fuentes Miso (asegurate de tener estos archivos en backend/fonts/) ===
+// === Fuentes Miso ===
 const fontBoldPath   = path.join(__dirname, 'fonts', 'miso-bold.ttf')
 const fontRegPath    = path.join(__dirname, 'fonts', 'miso-regular.ttf')
 const fontLightPath  = path.join(__dirname, 'fonts', 'miso-light.ttf')
@@ -34,7 +33,7 @@ function ensureFullHtml(h) {
   return hasHtml ? h : `<!DOCTYPE html><html lang="es"><head>${STYLE}</head><body>${h}</body></html>`
 }
 
-// ✅ Lista blanca CORS
+// ✅ CORS
 const ORIGENES_PERMITIDOS = [
   'http://127.0.0.1:5500',
   'http://localhost:3000',
@@ -60,25 +59,33 @@ app.post('/generar-cartel', async (req, res) => {
     const { datos, tipo, tamaño } = req.body
     if (!datos) return res.status(400).send('Faltan los datos')
 
-    // === PARSE CSV A OBJETOS (como lo tenías) ===
+    // === PARSE CSV A OBJETOS ===
     const lineas = datos.split('\n').map(l => l.trim()).filter(Boolean)
     const datosCarteles = []
 
     for (const linea of lineas) {
-      const partes = linea.match(/(?:[^,"']+|"(?:\\.|[^"])*"|'(?:\\.|[^'])*')+/g)
+      const partes = linea.match(/(?:[^,"']+|"(?:\\.|[^"])*"|'(?:\\.|[^'])*')+/g) || []
       const campos = partes.map(s => s.trim().replace(/^"|"$/g, ''))
 
       const desde = campos[0]
       const hasta = campos[1]
       const sku = campos[2]
       const descripcion = campos[3]
-      const precioOriginal = parseFloat(`${campos[4].replace('$', '')}.${campos[5]}`)
-      const precioFinal = parseFloat(`${campos[6].replace('$', '')}.${campos[7]}`)
+      const precioOriginal = parseFloat(`${(campos[4] || '').replace('$', '')}.${campos[5] || '00'}`)
+      const precioFinal    = parseFloat(`${(campos[6] || '').replace('$', '')}.${campos[7] || '00'}`)
 
       if (isNaN(precioOriginal) || isNaN(precioFinal)) throw new Error('Precio inválido')
 
       const codigoBarras = campos[8]
-      const descuento = tipo === '%' ? Math.round(100 - (precioFinal * 100) / precioOriginal) : null
+
+      // 🔎 Tipo por fila: si alguna celda dice "rebaja_simple", usamos ese tipo
+      const tieneRebajaSimple = campos.some(c => String(c || '').trim().toLowerCase() === 'rebaja_simple')
+      const tipoFila = tieneRebajaSimple ? 'rebaja_simple' : tipo
+
+      const descuento = tipoFila === '%'
+        ? Math.round(100 - (precioFinal * 100) / precioOriginal)
+        : null
+
       const item = sku
       const departamento = buscarDepartamentoPorSkuDesdeCSV(sku)
 
@@ -87,34 +94,48 @@ app.post('/generar-cartel', async (req, res) => {
         precioOriginal,
         precioFinal,
         descuento,
-        sku: codigoBarras,   // ⚠️ esto alimenta el código de barras como antes
+        sku: codigoBarras,   // esto alimenta el EAN13
         desde,
         hasta,
         departamento,
-        item
+        item,
+        tipoFila
       })
     }
 
-    // === GENERAR HTMLS COMO ANTES ===
+    // === GENERAR HTMLS ===
     let paginasHTML = []
+
     if (tamaño === 'A6') {
-      paginasHTML = await generarHTMLCartelesA6(datosCarteles) // esta función ya retorna array de páginas
+      // 1) Filas NO rebaja_simple → A6 “viejo” (mosaico existente)
+      const normales = datosCarteles.filter(d => d.tipoFila !== 'rebaja_simple')
+      if (normales.length) {
+        const htmlNormales = await generarHTMLCartelesA6(normales)
+        paginasHTML = paginasHTML.concat(htmlNormales)
+      }
+      // 2) Filas rebaja_simple → nuevas plantillas A6
+      const rebajas = datosCarteles.filter(d => d.tipoFila === 'rebaja_simple')
+      for (const datos of rebajas) {
+        const html = await generarHTMLCartel(datos, 'rebaja_simple', 'A6')
+        paginasHTML.push(html)
+      }
     } else {
+      // A4: cada fila decide su tipo (rebaja_simple o el global)
       for (const datos of datosCarteles) {
-        const html = await generarHTMLCartel(datos, tipo, tamaño)
+        const tipoUsado = datos.tipoFila || tipo
+        const html = await generarHTMLCartel(datos, tipoUsado, 'A4')
         paginasHTML.push(html)
       }
     }
 
-    // === Inyectar wrapper + fuentes (Light/Regular/Bold) ===
-    paginasHTML = paginasHTML.map(ensureFullHtml)
-    paginasHTML = paginasHTML.map(h => h
+    // === Inyectar wrapper + fuentes
+    paginasHTML = paginasHTML.map(ensureFullHtml).map(h => h
       .replace(/{{MISO_LIGHT_BASE64}}/g,  misoLightBase64)
       .replace(/{{MISO_REGULAR_BASE64}}/g, misoRegBase64)
       .replace(/{{MISO_BOLD_BASE64}}/g,    misoBoldBase64)
     )
 
-    // === Generar PDF con Puppeteer (igual que antes, pero esperando fonts) ===
+    // === Generar PDF con Puppeteer
     const browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -124,7 +145,7 @@ app.post('/generar-cartel', async (req, res) => {
     for (const html of paginasHTML) {
       const page = await browser.newPage()
       await page.setContent(html, { waitUntil: 'domcontentloaded' })
-      await page.evaluateHandle('document.fonts.ready') // ✅ aseguramos que carguen las fuentes
+      await page.evaluateHandle('document.fonts.ready')
       const buffer = await page.pdf({ format: 'A4', printBackground: true })
       const tempDoc = await PDFDocument.load(buffer)
       const copied = await pdfDoc.copyPages(tempDoc, tempDoc.getPageIndices())
@@ -144,7 +165,7 @@ app.post('/generar-cartel', async (req, res) => {
   }
 })
 
-// === RUTA AUXILIAR: base de productos (igual que la tuya) ===
+// === RUTA AUXILIAR: base de productos ===
 app.get('/base-productos', (req, res) => {
   try {
     const ruta = path.join(__dirname, 'base_deptos.csv')

@@ -1,4 +1,3 @@
-// backend/generadorHtml.cjs
 const fs = require('fs');
 const path = require('path');
 const { generarCodigoEAN13 } = require('./codigoBarras');
@@ -36,10 +35,32 @@ function reemplazar(template, mapa) {
   return out;
 }
 
+// ---- Plantillas de rebaja_simple en backend/plantillas/tabla
+function leerPlantillaRebajaSimple(tamaño) {
+  const archivo = tamaño === 'A6' ? 'rebaja_simple_A6.html' : 'rebaja_simple_A4.html';
+
+  // 1) backend/plantillas/tabla
+  const ruta1 = path.join(__dirname, 'plantillas', 'tabla', archivo);
+  if (fs.existsSync(ruta1)) return fs.readFileSync(ruta1, 'utf8');
+
+  // 2) fallback por si se ejecuta desde el root del proyecto
+  const ruta2 = path.join(process.cwd(), 'backend', 'plantillas', 'tabla', archivo);
+  if (fs.existsSync(ruta2)) return fs.readFileSync(ruta2, 'utf8');
+
+  throw new Error(`No encontré la plantilla de rebaja_simple: ${archivo}`);
+}
+
 async function generarHTMLCartel(datos, tipo, tamaño) {
-  const archivo = elegirPlantilla({ tipo, tamaño });
-  const htmlPath = path.join(__dirname, 'plantillas', archivo);
-  let template = fs.readFileSync(htmlPath, 'utf8');
+  // --- rebaja_simple usa plantillas dedicadas ---
+  let template;
+  if (tipo === 'rebaja_simple') {
+    template = leerPlantillaRebajaSimple(tamaño);
+  } else {
+    // --- resto de tipos: flujo original ---
+    const archivo = elegirPlantilla({ tipo, tamaño });
+    const htmlPath = path.join(__dirname, 'plantillas', archivo);
+    template = fs.readFileSync(htmlPath, 'utf8');
+  }
 
   const {
     descripcion = '',
@@ -53,17 +74,18 @@ async function generarHTMLCartel(datos, tipo, tamaño) {
     sku = ''
   } = datos;
 
-  // Código de barras
+  // Código de barras (EAN13)
   let barcodeBase64 = '';
   try {
     const buffer = await generarCodigoEAN13(sku);
     if (buffer?.length) barcodeBase64 = `data:image/png;base64,${buffer.toString('base64')}`;
   } catch {}
 
-  const [precioFinalEntero, precioFinalDecimales]     = Number(precioFinal).toFixed(2).split('.');
+  const [precioFinalEntero, precioFinalDecimales]       = Number(precioFinal).toFixed(2).split('.');
   const [precioOriginalEntero, precioOriginalDecimales] = Number(precioOriginal).toFixed(2).split('.');
 
   const tokens = {
+    // llaves estándar (tu reemplazo es case-insensitive)
     descripcion,
     precioOriginalEntero,
     precioOriginalDecimales,
