@@ -434,3 +434,39 @@ window.addEventListener('DOMContentLoaded', () => {
 // Exponer
 window.cargarDesdeTabla = cargarDesdeTabla
 window.agregarFila = agregarFila
+
+
+function limpiarTodo() {
+  // textarea
+  const ta = document.getElementById('inputDatos'); if (ta) ta.value = ''
+
+  // selects principales
+  const tipo = document.getElementById('tipoCartel'); if (tipo) tipo.value = '%'
+  const formato = document.getElementById('formato'); if (formato) formato.value = 'A4'
+
+  // resultado
+  const res = document.getElementById('resultado'); if (res) res.innerHTML = ''
+
+  // tabla: reiniciar a 1 fila vacía
+  const tbody = document.getElementById('tablaCartelesBody')
+  if (tbody) {
+    tbody.innerHTML = ''
+    filasActuales = 0
+    agregarFila()
+  }
+
+  // por si hubiera inputs sueltos
+  document.querySelectorAll('input[type="text"], input[type="number"], input[type="date"]').forEach(el => el.value = '')
+  document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false)
+
+  // foco inicial
+  ta?.focus()
+}
+window.limpiarTodo = limpiarTodo
+
+function confirmarYLimpiar(){
+  if (confirm('¿Limpiar todos los campos? Esta acción no se puede deshacer.')) {
+    limpiarTodo()
+  }
+}
+window.confirmarYLimpiar = confirmarYLimpiar
