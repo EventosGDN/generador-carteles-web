@@ -37,6 +37,10 @@
     /* parámetros del tachado */
     --fix-tachado: 3mm;     /* empuje del bloque tachado hacia adentro (SIN recortes) */
     --tach-l: 8%;           /* largo del tachado dentro de los dígitos (menor = más corto) */
+
+    /* === NUEVO: centrado robusto del número de descuento === */
+    --ajuste-desc: -9.2mm;  /* subir = valor más negativo; bajar = menos negativo */
+    --colchon-negro: 1.6mm; /* “acolchado” superior/inferior dentro del rectángulo negro */
   }
 
   body{ margin:0; padding:0; width:210mm; height:297mm; font-family:'Miso',sans-serif; }
@@ -62,9 +66,24 @@
   .lado-negro{
     width:75%; background:#000; color:#fff; display:flex; align-items:center; justify-content:center;
     border:2px solid #000; border-left:none;
+    /* acolchado interno para evitar recortes en distintos renderers */
+    padding-block: var(--colchon-negro);
   }
   .texto-lleva{ font-size:30px; font-weight:700; line-height:1.2; text-align:center; }
-  .valor-descuento{ font-size:100px; letter-spacing:-8px; color:#fff; font-weight:400; transform:translateY(-4mm); }
+
+  /* CENTRADO del número en todos los motores (quita translateY) */
+  .valor-descuento{
+    font-size:100px;
+    letter-spacing:-8px;
+    color:#fff;
+    font-weight:400;
+    line-height:1;                /* altura igual al texto → centra bien */
+    transform:none !important;    /* evita variaciones entre motores PDF */
+    position:relative;
+    top: var(--ajuste-desc);      /* <- mover acá si hace falta afinar */
+    display:inline-block;
+    margin:0; padding:0; white-space:nowrap;
+  }
 
   /* —— Layout vertical con centro elástico —— */
   .layout{
@@ -110,13 +129,11 @@
   .precio-original-cruz{
     grid-column:1;
     position:relative; display:inline-block; margin:0;
-    /* En lugar de padding/max-width/overflow → sólo lo desplazo sin recortar */
-    margin-left: var(--fix-tachado);
+    margin-left: var(--fix-tachado);   /* desplazo sin recortar */
   }
-  /* No dibujamos la cruz en el contenedor general… */
   .precio-original-cruz::before,
-  .precio-original-cruz::after{ content:none; }
-  /* …la dibujamos SOLAMENTE sobre los dígitos para que no tape $ / C/U */
+  .precio-original-cruz::after{ content:none; } /* no tachar el contenedor */
+  /* …tachamos SOLO los dígitos para no tapar $ / C/U */
   .precio-original-cruz .precio-numeros{ position:relative; }
   .precio-original-cruz .precio-numeros::before,
   .precio-original-cruz .precio-numeros::after{

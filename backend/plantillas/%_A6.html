@@ -41,6 +41,9 @@
     /* === NUEVO: centrado robusto del número de descuento === */
     --ajuste-desc: -9.2mm;  /* subir = valor más negativo; bajar = menos negativo */
     --colchon-negro: 1.6mm; /* “acolchado” superior/inferior dentro del rectángulo negro */
+
+    /* === NUEVO: margen de seguridad inferior (no toca el superior) === */
+    --safe-bottom: 5mm;
   }
 
   body{ margin:0; padding:0; width:210mm; height:297mm; font-family:'Miso',sans-serif; }
@@ -49,7 +52,10 @@
   .contenedor-a6{
     position:absolute; top:{{top}}mm; left:{{left}}mm;
     width:105mm; height:148.5mm; box-sizing:border-box; transform-origin:top left;
-    display:flex; flex-direction:column; align-items:center; padding-top:21mm; overflow:hidden;
+    display:flex; flex-direction:column; align-items:center;
+    padding-top:21mm;                 /* margen superior intacto */
+    padding-bottom: var(--safe-bottom);/* solo agrega aire abajo */
+    overflow:hidden;
   }
 
   /* Título y franja % */
@@ -66,21 +72,19 @@
   .lado-negro{
     width:75%; background:#000; color:#fff; display:flex; align-items:center; justify-content:center;
     border:2px solid #000; border-left:none;
-    /* acolchado interno para evitar recortes en distintos renderers */
     padding-block: var(--colchon-negro);
   }
   .texto-lleva{ font-size:30px; font-weight:700; line-height:1.2; text-align:center; }
 
-  /* CENTRADO del número en todos los motores (quita translateY) */
   .valor-descuento{
     font-size:100px;
     letter-spacing:-8px;
     color:#fff;
     font-weight:400;
-    line-height:1;                /* altura igual al texto → centra bien */
-    transform:none !important;    /* evita variaciones entre motores PDF */
+    line-height:1;
+    transform:none !important;
     position:relative;
-    top: var(--ajuste-desc);      /* <- mover acá si hace falta afinar */
+    top: var(--ajuste-desc);
     display:inline-block;
     margin:0; padding:0; white-space:nowrap;
   }
@@ -97,7 +101,7 @@
   }
   .centro{
     display:grid; place-items:center;
-    padding-block: var(--aire-centro);  /* aire SIMÉTRICO arriba/abajo del precio final */
+    padding-block: var(--aire-centro);
   }
 
   /* Grilla de 3 columnas (arriba y abajo) */
@@ -110,7 +114,6 @@
     margin:0;
   }
 
-  /* Fila ARRIBA: precio final centrado + botón alineado a la derecha (como el código) */
   .precio-final-grande{ grid-column:2; justify-self:center; }
   .sello-html-ajustado{
     grid-column:3; justify-self:end; width:18mm; height:18mm;
@@ -122,18 +125,16 @@
   .sello-html-ajustado .linea2{ font-size:12px; font-weight:700; }
   .sello-html-ajustado .linea3{ font-size:13px; font-weight:700; }
 
-  /* Fila ABAJO: acercamos un poco hacia el centro */
   .grupo-orig{ transform: translateY(calc(-1 * var(--subir-inferior))); }
 
   /* === BLOQUE TACHADO (fix de recortes) === */
   .precio-original-cruz{
     grid-column:1;
     position:relative; display:inline-block; margin:0;
-    margin-left: var(--fix-tachado);   /* desplazo sin recortar */
+    margin-left: var(--fix-tachado);
   }
   .precio-original-cruz::before,
-  .precio-original-cruz::after{ content:none; } /* no tachar el contenedor */
-  /* …tachamos SOLO los dígitos para no tapar $ / C/U */
+  .precio-original-cruz::after{ content:none; }
   .precio-original-cruz .precio-numeros{ position:relative; }
   .precio-original-cruz .precio-numeros::before,
   .precio-original-cruz .precio-numeros::after{
@@ -144,21 +145,18 @@
   .precio-original-cruz .precio-numeros::before{ transform:rotate(15deg); }
   .precio-original-cruz .precio-numeros::after{  transform:rotate(-15deg); }
 
-  /* INFO */
   .info{
     grid-column:2; justify-self:center;
     display:block; text-align:center; margin:0;
     font-size:9.5pt; line-height:1.15;
   }
 
-  /* Código de barras alineado con el botón */
   .codigo-barras-posicionado{
     grid-column:3; justify-self:end;
     width:var(--barcode-width); height:var(--barcode-height);
     object-fit:contain; max-width:100%;
   }
 
-  /* Tipografías de precios y símbolos */
   .precio-contenedor{ display:flex; align-items:flex-start; gap:1.5mm; }
   .precio-numeros{ display:flex; align-items:baseline; }
   .grupo-final .simbolos{ display:flex; flex-direction:column; align-items:flex-end; line-height:1; transform:translateY(var(--shift-simbolos-final)); font-size:15px; }
