@@ -6,7 +6,7 @@
 <style>
   @page { size: A4; margin: 0; }
 
-  /* Fuentes en base64 (backend inyecta) */
+  /* Fuentes (inyectadas por backend si usás base64) */
   @font-face{ font-family:'Miso'; src:url('data:font/ttf;base64,{{MISO_LIGHT_BASE64}}') format('truetype'); font-weight:300; font-style:normal; }
   @font-face{ font-family:'Miso'; src:url('data:font/ttf;base64,{{MISO_REGULAR_BASE64}}') format('truetype'); font-weight:400; font-style:normal; }
   @font-face{ font-family:'Miso'; src:url('data:font/ttf;base64,{{MISO_BOLD_BASE64}}')    format('truetype'); font-weight:700; font-style:normal; }
@@ -15,13 +15,13 @@
     --ancho-contenido: 95mm;
 
     /* columnas y alineaciones */
-    --col-left: 32mm;
-    --right-inset: 2mm;
-    --shift-x: 0mm;
+    --col-left: 32mm;                 /* columna del precio tachado */
+    --right-inset: 2mm;               /* mete botón/código desde la derecha */
+    --shift-x: 0mm;                   /* centro total del bloque (0 = no se corre) */
 
-    /* espacios */
-    --aire-centro: 6mm;
-    --subir-inferior: 2mm;
+    /* ESPACIOS CLAVE */
+    --aire-centro: 6mm;               /* aire igual arriba/abajo del precio final */
+    --subir-inferior: 2mm;            /* cuánto sube el bloque inferior */
 
     /* tamaños */
     --final-entero: 34px;  --final-dec: 16px;
@@ -34,29 +34,27 @@
     --shift-simbolos-final: .30em;
     --shift-simbolos-orig:  .36em;
 
-    /* tachado */
-    --fix-tachado: 3mm;
-    --tach-l: 8%;
+    /* parámetros del tachado */
+    --fix-tachado: 3mm;     /* empuje del bloque tachado hacia adentro (SIN recortes) */
+    --tach-l: 8%;           /* largo del tachado dentro de los dígitos (menor = más corto) */
+
+    /* === NUEVO: centrado robusto del número de descuento === */
+    --ajuste-desc: -1.2mm;  /* subir = valor más negativo; bajar = menos negativo */
+    --colchon-negro: 1.6mm; /* “acolchado” superior/inferior dentro del rectángulo negro */
   }
 
   body{ margin:0; padding:0; width:210mm; height:297mm; font-family:'Miso',sans-serif; }
 
+  /* A6 posicionado por el backend (top/left) */
   .contenedor-a6{
     position:absolute; top:{{top}}mm; left:{{left}}mm;
     width:105mm; height:148.5mm; box-sizing:border-box; transform-origin:top left;
     display:flex; flex-direction:column; align-items:center; padding-top:21mm; overflow:hidden;
   }
 
+  /* Título y franja % */
   .titulo{ font-size:32pt; font-weight:700; text-align:center; margin:10mm 0 5mm 0; }
-
-  /* ===== Franja % ===== */
-  .descuento{
-    width:var(--ancho-contenido);
-    height:30mm;
-    display:flex;
-    margin:0;
-    overflow:visible;
-  }
+  .descuento{ width:var(--ancho-contenido); height:30mm; display:flex; margin:0; }
   .lado-blanco{
     width:37%; background:#fff; display:flex; align-items:center; justify-content:center;
     border:2px solid #000; border-right:none; position:relative;
@@ -66,46 +64,43 @@
     width:0; height:0; border-top:50px solid transparent; border-bottom:60px solid transparent; border-left:30px solid #fff;
   }
   .lado-negro{
-    width:75%;
-    background:#000; color:#fff;
-    /* CENTRADO robusto (evita recortes en PDF) */
-    display:flex; align-items:center; justify-content:center;
+    width:75%; background:#000; color:#fff; display:flex; align-items:center; justify-content:center;
     border:2px solid #000; border-left:none;
-    padding-block: 1.2mm;     /* colchón arriba/abajo para cualquier motor */
-    line-height: 0;           /* sin herencia rara de línea */
-    overflow:visible;
+    /* acolchado interno para evitar recortes en distintos renderers */
+    padding-block: var(--colchon-negro);
   }
   .texto-lleva{ font-size:30px; font-weight:700; line-height:1.2; text-align:center; }
 
+  /* CENTRADO del número en todos los motores (quita translateY) */
   .valor-descuento{
     font-size:100px;
     letter-spacing:-8px;
     color:#fff;
     font-weight:400;
-    display:block;            /* caja propia, sin inline quirks */
-    line-height:0.9;          /* caja del texto más compacta */
-    transform:none !important;
-    margin:0; padding:0;
-    position:relative; top:-0.04em;  /* microajuste hacia ARRIBA, evita “pegarse” abajo */
-    white-space:nowrap;
+    line-height:1;                /* altura igual al texto → centra bien */
+    transform:none !important;    /* evita variaciones entre motores PDF */
+    position:relative;
+    top: var(--ajuste-desc);      /* <- mover acá si hace falta afinar */
+    display:inline-block;
+    margin:0; padding:0; white-space:nowrap;
   }
 
-  /* —— layout vertical —— */
+  /* —— Layout vertical con centro elástico —— */
   .layout{
     width:var(--ancho-contenido);
     flex:1 1 auto;
     display:grid;
-    grid-template-rows: min-content 1fr min-content;
+    grid-template-rows: min-content 1fr min-content; /* [franja][centro elástico][bloque inferior] */
     row-gap: 0;
     align-self:center;
     transform: translateX(var(--shift-x));
   }
   .centro{
     display:grid; place-items:center;
-    padding-block: var(--aire-centro);
+    padding-block: var(--aire-centro);  /* aire SIMÉTRICO arriba/abajo del precio final */
   }
 
-  /* grilla de 3 columnas */
+  /* Grilla de 3 columnas (arriba y abajo) */
   .grupo-final,
   .grupo-orig{
     width:var(--ancho-contenido); box-sizing:border-box;
@@ -115,6 +110,7 @@
     margin:0;
   }
 
+  /* Fila ARRIBA: precio final centrado + botón alineado a la derecha (como el código) */
   .precio-final-grande{ grid-column:2; justify-self:center; }
   .sello-html-ajustado{
     grid-column:3; justify-self:end; width:18mm; height:18mm;
@@ -126,11 +122,18 @@
   .sello-html-ajustado .linea2{ font-size:12px; font-weight:700; }
   .sello-html-ajustado .linea3{ font-size:13px; font-weight:700; }
 
+  /* Fila ABAJO: acercamos un poco hacia el centro */
   .grupo-orig{ transform: translateY(calc(-1 * var(--subir-inferior))); }
 
-  /* tachado: la cruz solo sobre dígitos */
-  .precio-original-cruz{ grid-column:1; position:relative; display:inline-block; margin:0; margin-left: var(--fix-tachado); }
-  .precio-original-cruz::before, .precio-original-cruz::after{ content:none; }
+  /* === BLOQUE TACHADO (fix de recortes) === */
+  .precio-original-cruz{
+    grid-column:1;
+    position:relative; display:inline-block; margin:0;
+    margin-left: var(--fix-tachado);   /* desplazo sin recortar */
+  }
+  .precio-original-cruz::before,
+  .precio-original-cruz::after{ content:none; } /* no tachar el contenedor */
+  /* …tachamos SOLO los dígitos para no tapar $ / C/U */
   .precio-original-cruz .precio-numeros{ position:relative; }
   .precio-original-cruz .precio-numeros::before,
   .precio-original-cruz .precio-numeros::after{
@@ -141,14 +144,21 @@
   .precio-original-cruz .precio-numeros::before{ transform:rotate(15deg); }
   .precio-original-cruz .precio-numeros::after{  transform:rotate(-15deg); }
 
-  .info{ grid-column:2; justify-self:center; text-align:center; margin:0; font-size:9.5pt; line-height:1.15; }
+  /* INFO */
+  .info{
+    grid-column:2; justify-self:center;
+    display:block; text-align:center; margin:0;
+    font-size:9.5pt; line-height:1.15;
+  }
 
+  /* Código de barras alineado con el botón */
   .codigo-barras-posicionado{
     grid-column:3; justify-self:end;
     width:var(--barcode-width); height:var(--barcode-height);
     object-fit:contain; max-width:100%;
   }
 
+  /* Tipografías de precios y símbolos */
   .precio-contenedor{ display:flex; align-items:flex-start; gap:1.5mm; }
   .precio-numeros{ display:flex; align-items:baseline; }
   .grupo-final .simbolos{ display:flex; flex-direction:column; align-items:flex-end; line-height:1; transform:translateY(var(--shift-simbolos-final)); font-size:15px; }
@@ -164,12 +174,15 @@
   <div class="contenedor-a6">
     <div class="titulo">{{descripcion}}</div>
 
+    <!-- Layout vertical estable -->
     <div class="layout">
+      <!-- Franja de descuento (arriba) -->
       <div class="descuento">
         <div class="lado-blanco"><span class="texto-lleva">LLEVÁS<br>1X</span></div>
         <div class="lado-negro"><span class="valor-descuento">-{{descuento}}%</span></div>
       </div>
 
+      <!-- Centro: precio final + botón con aire simétrico -->
       <div class="centro">
         <div class="grupo-final">
           <div></div>
@@ -189,6 +202,7 @@
         </div>
       </div>
 
+      <!-- Abajo: tachado + info + código -->
       <div class="grupo-orig">
         <div class="precio-original-cruz">
           <div class="precio-contenedor">
