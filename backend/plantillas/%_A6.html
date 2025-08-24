@@ -48,9 +48,17 @@
     display:flex; flex-direction:column; align-items:center; padding-top:21mm; overflow:hidden;
   }
 
-  /* Título y franja % */
+  /* Título */
   .titulo{ font-size:32pt; font-weight:700; text-align:center; margin:10mm 0 5mm 0; }
-  .descuento{ width:var(--ancho-contenido); height:30mm; display:flex; margin:0; }
+
+  /* ===== Franja de descuento ===== */
+  .descuento{
+    width:var(--ancho-contenido);
+    height:30mm;
+    display:flex;
+    margin:0;
+    overflow:visible;                 /* evita recortes en algunos renderers */
+  }
   .lado-blanco{
     width:37%; background:#fff; display:flex; align-items:center; justify-content:center;
     border:2px solid #000; border-right:none; position:relative;
@@ -60,30 +68,33 @@
     width:0; height:0; border-top:50px solid transparent; border-bottom:60px solid transparent; border-left:30px solid #fff;
   }
   .lado-negro{
-    width:75%; background:#000; color:#fff; display:flex; align-items:center; justify-content:center;
+    width:75%;
+    background:#000; color:#fff;
+    display:grid; place-items:center;  /* centrado vertical y horizontal robusto */
     border:2px solid #000; border-left:none;
+    padding-block:0.6mm;               /* pequeño colchón vertical */
+    overflow:visible;
   }
   .texto-lleva{ font-size:30px; font-weight:700; line-height:1.2; text-align:center; }
- /* CENTRAR el número en todos los navegadores/renderers PDF */
-.valor-descuento{
-  font-size:100px;
-  letter-spacing:-8px;
-  color:#fff;
-  font-weight:400;
-  line-height:1;          /* altura igual al texto → centra bien */
-  transform:none !important;   /* quita el empujón que varía en producción */
-  display:inline-block;   /* se comporta mejor como ítem de flex */
-  margin:0;
-  padding:0;
-}
 
+  /* NÚMERO del descuento — centrado y sin clipping */
+  .valor-descuento{
+    font-size:100px;
+    letter-spacing:-8px;
+    color:#fff;
+    font-weight:400;
+    display:inline-block;
+    line-height:1.12;                  /* caja de línea algo más alta */
+    transform:none !important;         /* evita desplazamientos distintos por motor */
+    margin:0; padding:0; white-space:nowrap;
+  }
 
   /* —— Layout vertical con centro elástico —— */
   .layout{
     width:var(--ancho-contenido);
     flex:1 1 auto;
     display:grid;
-    grid-template-rows: min-content 1fr min-content; /* [franja][centro elástico][bloque inferior] */
+    grid-template-rows: min-content 1fr min-content; /* [franja][centro][bloque inferior] */
     row-gap: 0;
     align-self:center;
     transform: translateX(var(--shift-x));
@@ -122,13 +133,11 @@
   .precio-original-cruz{
     grid-column:1;
     position:relative; display:inline-block; margin:0;
-    /* En lugar de padding/max-width/overflow → sólo lo desplazo sin recortar */
-    margin-left: var(--fix-tachado);
+    margin-left: var(--fix-tachado);   /* lo empujo a la derecha sin recortar */
   }
-  /* No dibujamos la cruz en el contenedor general… */
+  /* La cruz va sólo sobre los dígitos para no tapar $ / C/U */
   .precio-original-cruz::before,
   .precio-original-cruz::after{ content:none; }
-  /* …la dibujamos SOLAMENTE sobre los dígitos para que no tape $ / C/U */
   .precio-original-cruz .precio-numeros{ position:relative; }
   .precio-original-cruz .precio-numeros::before,
   .precio-original-cruz .precio-numeros::after{
