@@ -59,12 +59,26 @@
     content:''; position:absolute; right:-29px; top:50%; transform:translateY(-50%);
     width:0; height:0; border-top:50px solid transparent; border-bottom:60px solid transparent; border-left:30px solid #fff;
   }
+
+  /* ====== FIX ROBUSTO: centrado absoluto del % ====== */
   .lado-negro{
-    width:75%; background:#000; color:#fff; display:flex; align-items:center; justify-content:center;
+    width:75%; background:#000; color:#fff;
     border:2px solid #000; border-left:none;
+    position:relative;                 /* <- clave para posicionar el texto */
+    overflow:hidden;
   }
   .texto-lleva{ font-size:30px; font-weight:700; line-height:1.2; text-align:center; }
-  .valor-descuento{ font-size:100px; letter-spacing:-8px; color:#fff; font-weight:400; transform:translateY(-4mm); }
+
+  .valor-descuento{
+    position:absolute; top:50%; left:50%;
+    transform: translate(-50%, -50%);  /* centra x/y sin depender de métricas */
+    margin:0;
+    font-size:100px;
+    letter-spacing:-0.06em;            /* relativo al tamaño (mejor que px) */
+    color:#fff; font-weight:400;
+    line-height:1;                     /* evita empujes verticales distintos */
+    font-family:'Miso', sans-serif;
+  }
 
   /* —— Layout vertical con centro elástico —— */
   .layout{
@@ -110,13 +124,10 @@
   .precio-original-cruz{
     grid-column:1;
     position:relative; display:inline-block; margin:0;
-    /* En lugar de padding/max-width/overflow → sólo lo desplazo sin recortar */
-    margin-left: var(--fix-tachado);
+    margin-left: var(--fix-tachado);  /* desplazo sin recortar */
   }
-  /* No dibujamos la cruz en el contenedor general… */
   .precio-original-cruz::before,
   .precio-original-cruz::after{ content:none; }
-  /* …la dibujamos SOLAMENTE sobre los dígitos para que no tape $ / C/U */
   .precio-original-cruz .precio-numeros{ position:relative; }
   .precio-original-cruz .precio-numeros::before,
   .precio-original-cruz .precio-numeros::after{
