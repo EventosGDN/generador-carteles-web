@@ -64,7 +64,19 @@
     border:2px solid #000; border-left:none;
   }
   .texto-lleva{ font-size:30px; font-weight:700; line-height:1.2; text-align:center; }
-  .valor-descuento{ font-size:100px; letter-spacing:-8px; color:#fff; font-weight:400; transform:translateY(-4mm); }
+ /* CENTRAR el número en todos los navegadores/renderers PDF */
+.valor-descuento{
+  font-size:100px;
+  letter-spacing:-8px;
+  color:#fff;
+  font-weight:400;
+  line-height:1;          /* altura igual al texto → centra bien */
+  transform:none !important;   /* quita el empujón que varía en producción */
+  display:inline-block;   /* se comporta mejor como ítem de flex */
+  margin:0;
+  padding:0;
+}
+
 
   /* —— Layout vertical con centro elástico —— */
   .layout{
