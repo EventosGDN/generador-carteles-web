@@ -5,37 +5,137 @@
   <title>Generador de Carteles</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    /* Botón rojo fijo arriba a la derecha */
+    /* Botón Limpiar */
     .btn-limpiar{
-      background:#d32f2f;color:#fff;border:none;border-radius:6px;
-      padding:10px 12px;display:inline-flex;align-items:center;gap:8px;
-      cursor:pointer;transition:background-color .2s;box-shadow:0 1px 2px rgba(0,0,0,.1);
+      background:#e53935;color:#fff;border:none;border-radius:6px;
+      padding:10px 14px;display:inline-flex;align-items:center;gap:8px;
+      cursor:pointer;transition:background-color .2s;
+      font-size:14px;font-weight:500;
     }
-    .btn-limpiar:hover{ background:#b71c1c; }
+    .btn-limpiar:hover{ background:#c62828; }
     .btn-limpiar svg{ display:block }
     .btn-limpiar-corner{
-      position:fixed;top:16px;right:16px;z-index:1000;white-space:nowrap;
+      position:fixed;top:16px;right:16px;z-index:1000;
     }
-    @media (max-width:600px){ .btn-limpiar-corner span{ display:none } }
+
+    /* Overlay moderno */
+    #progress-overlay{
+      position:fixed; inset:0; display:none;
+      align-items:center; justify-content:center;
+      background:rgba(0,0,0,.45); backdrop-filter:blur(6px);
+      z-index:1100;
+    }
+    .progress-card{
+      width:min(420px,90vw);
+      background:#fff; border-radius:12px;
+      box-shadow:0 8px 32px rgba(0,0,0,.25);
+      font-family:'Segoe UI',Roboto,Arial,sans-serif;
+      padding:24px; position:relative;
+      display:flex; flex-direction:column; align-items:center;
+    }
+    .progress-cancel{
+      position:absolute;top:12px;right:12px;
+      width:28px;height:28px;border:none;
+      border-radius:50%;background:#f5f5f5;
+      display:flex;align-items:center;justify-content:center;
+      cursor:pointer;font-size:18px;color:#555;
+      transition:background .2s;
+    }
+    .progress-cancel:hover{ background:#eee; }
+
+    /* Carrito animado */
+    .cart-wrap{ width:100%; height:80px; margin:10px 0 20px; overflow:hidden; position:relative; }
+    .cart {
+  position:absolute; bottom:0; left:-60px;
+  width:60px; height:60px;
+  animation: cart-move 3s linear infinite;
+}
+
+    .cart svg{ width:100%;height:100%; fill:#2c3e50; }
+   @keyframes cart-move {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  25% {
+    transform: translateX(100px) translateY(-2px) rotate(-3deg);
+  }
+  50% {
+    transform: translateX(200px) translateY(0) rotate(0deg);
+  }
+  75% {
+    transform: translateX(300px) translateY(2px) rotate(3deg);
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(380px) translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+}
+
+
+
+    /* Barra de progreso minimalista */
+    .progress-bar{
+      width:100%;height:6px;border-radius:3px;
+      background:#e0e0e0; overflow:hidden;
+    }
+    .progress-bar .fill{
+      height:100%;width:0%;
+      background:#4caf50; border-radius:3px;
+      transition:width .25s ease;
+    }
+
+    .progress-status{ margin-top:12px; font-size:14px; color:#333; }
   </style>
 </head>
 <body>
 
-  <!-- Botón Limpiar (esquina superior derecha) -->
+  <!-- Botón Limpiar -->
   <button class="btn-limpiar btn-limpiar-corner"
-          onclick="confirmarYLimpiar()"
-          aria-label="Limpiar todos los campos"
-          title="Limpiar todos los campos">
-    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-      <rect x="12" y="2" width="2" height="11" rx="1" transform="rotate(30 13 7)" fill="currentColor"></rect>
-      <path d="M4 18h10l2-4H6z" fill="currentColor"></path>
+          onclick="confirmarYLimpiar()">
+    <svg viewBox="0 0 24 24" width="18" height="18">
+      <rect x="12" y="2" width="2" height="11" rx="1" transform="rotate(30 13 7)" fill="currentColor"/>
+      <path d="M4 18h10l2-4H6z" fill="currentColor"/>
     </svg>
-    <span>Limpiar todos los campos</span>
+    Limpiar todos los campos
   </button>
+
+  <!-- Overlay moderno -->
+  <div id="progress-overlay">
+    <div class="progress-card">
+      <button class="progress-cancel" onclick="cancelarGeneracion()">×</button>
+      <div class="cart-wrap">
+        <div class="cart">
+          <!-- Carrito limpio -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 
+                     22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 
+                     0-1.99.9-1.99 2S15.9 22 17 
+                     22s2-.9 2-2-.9-2-2-2zM7.16 
+                     14h9.45c.75 0 1.41-.41 
+                     1.75-1.03L21.9 6.59A1 1 0 0021 5H5.21L4.27 3H1v2h2l3.6 
+                     7.59-1.35 2.44C4.52 16.37 
+                     5.48 18 7 18h12v-2H7.42c-.14 
+                     0-.25-.11-.25-.25l.03-.12.96-1.63z"/>
+          </svg>
+        </div>
+      </div>
+      <div class="progress-bar">
+        <div class="fill" id="progress-fill"></div>
+      </div>
+      <div class="progress-status" id="progress-status">Preparando…</div>
+    </div>
+  </div>
 
   <h1>Generador de Carteles</h1>
 
-  <textarea id="inputDatos" placeholder="Pega aquí los datos (separados por coma)..."></textarea>
+  <textarea id="inputDatos" placeholder="Pega aquí los datos..."></textarea>
 
   <div class="controles">
     <select id="tipoCartel">
@@ -45,7 +145,7 @@
       <option value="A4">A4</option>
       <option value="A6">A6</option>
     </select>
-    <button onclick="generarCartel()">Generar CPT</button>
+    <button onclick="ejecutarCPTConIndicador()">Generar CPT</button>
   </div>
 
   <div id="resultado"></div>
@@ -55,20 +155,10 @@
     <table border="1">
       <thead>
         <tr>
-          <th>EAN/SKU</th>
-          <th>PRECIO</th>
-          <th>% DESC.</th>
-          <th>precio manual</th>
-          <th>Fecha inicio</th>
-          <th>Fecha final</th>
-          <th>TIPO DE CARTEL</th>
-          <th>MAS CLUB</th>
-          <th>A4</th>
-          <th>A6</th>
-          <th>DEPTO</th>
-          <th>DESCRIPCION</th>
-          <th>SKU</th>
-          <th>EAN</th>
+          <th>EAN/SKU</th><th>PRECIO</th><th>% DESC.</th><th>precio manual</th>
+          <th>Fecha inicio</th><th>Fecha final</th><th>TIPO DE CARTEL</th>
+          <th>MAS CLUB</th><th>A4</th><th>A6</th><th>DEPTO</th>
+          <th>DESCRIPCION</th><th>SKU</th><th>EAN</th>
         </tr>
       </thead>
       <tbody id="tablaCartelesBody"></tbody>
@@ -76,31 +166,70 @@
   </div>
 
   <div class="botones-manuales">
-    <button onclick="cargarDesdeTabla()">Generar Banderas Manuales</button>
+    <button onclick="ejecutarGeneracionConIndicador()">Generar Banderas Manuales</button>
     <button class="boton-agregar" onclick="agregarFila()">+</button>
   </div>
 
   <script src="main.js"></script>
   <script>
-    // Confirmación y limpieza (usa limpiarTodo() si existe; si no, hace un fallback seguro)
+    let progTimer=null, pctFake=0, cancelado=false;
+
+    function abrirOverlay(msg='Generando Banderas'){
+      cancelado=false;
+      const overlay=document.getElementById('progress-overlay');
+      const status=document.getElementById('progress-status');
+      const fill=document.getElementById('progress-fill');
+      if(status) status.textContent=msg;
+      if(fill) fill.style.width='0%';
+      pctFake=0; overlay.style.display='flex';
+
+      progTimer=setInterval(()=>{
+        if(cancelado) return;
+        pctFake=Math.min(90,pctFake+Math.random()*4+1);
+        fill.style.width=pctFake.toFixed(0)+'%';
+      },180);
+    }
+
+    async function cerrarOverlayMinimo(t0,msg='Completado'){
+      clearInterval(progTimer); progTimer=null;
+      const fill=document.getElementById('progress-fill');
+      const status=document.getElementById('progress-status');
+      const elapsed=performance.now()-t0; const MIN=800;
+      if(elapsed<MIN) await new Promise(r=>setTimeout(r,MIN-elapsed));
+      if(status) status.textContent=msg;
+      if(fill) fill.style.width='100%';
+      setTimeout(()=>{document.getElementById('progress-overlay').style.display='none';},600);
+    }
+
+    function cancelarGeneracion(){
+      cancelado=true;
+      clearInterval(progTimer); progTimer=null;
+      document.getElementById('progress-overlay').style.display='none';
+      alert('Generación cancelada por el usuario.');
+    }
+
+    async function ejecutarCPTConIndicador(){
+      const t0=performance.now(); abrirOverlay('Generando CPT');
+      try{ if(typeof generarCartel==='function') await generarCartel(); }
+      finally{ if(!cancelado) await cerrarOverlayMinimo(t0); }
+    }
+
+    async function ejecutarGeneracionConIndicador(){
+      const t0=performance.now(); abrirOverlay('Generando Banderas');
+      try{ if(typeof cargarDesdeTabla==='function') await cargarDesdeTabla(); }
+      finally{ if(!cancelado) await cerrarOverlayMinimo(t0); }
+    }
+
     function confirmarYLimpiar(){
-      if(!confirm('¿Limpiar todos los campos? Esta acción no se puede deshacer.')) return;
-
-      if (typeof window.limpiarTodo === 'function') {
-        window.limpiarTodo();
-        return;
-      }
-
-      // Fallback básico
-      const ta = document.getElementById('inputDatos'); if (ta) ta.value = '';
-      const tipo = document.getElementById('tipoCartel'); if (tipo) tipo.value = '%';
-      const formato = document.getElementById('formato'); if (formato) formato.value = 'A4';
-      const res = document.getElementById('resultado'); if (res) res.innerHTML = '';
-      document.querySelectorAll('input[type="text"],input[type="number"],input[type="date"]').forEach(el=>el.value='');
-      document.querySelectorAll('input[type="checkbox"]').forEach(el=>el.checked=false);
-      const tbody = document.getElementById('tablaCartelesBody');
-      if (tbody){ tbody.innerHTML=''; if (typeof window.agregarFila==='function') window.agregarFila(); }
-      ta?.focus();
+      if(!confirm('¿Limpiar todos los campos?')) return;
+      document.getElementById('inputDatos').value='';
+      document.getElementById('resultado').innerHTML='';
+      document.querySelectorAll('input,select').forEach(el=>{
+        if(el.type==='checkbox') el.checked=false;
+        else if(el.tagName==='INPUT' || el.tagName==='SELECT') el.value='';
+      });
+      document.getElementById('tablaCartelesBody').innerHTML='';
+      if(typeof window.agregarFila==='function') window.agregarFila();
     }
   </script>
 </body>
