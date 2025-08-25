@@ -220,17 +220,26 @@
       finally{ if(!cancelado) await cerrarOverlayMinimo(t0); }
     }
 
-    function confirmarYLimpiar(){
-      if(!confirm('¿Limpiar todos los campos?')) return;
-      document.getElementById('inputDatos').value='';
-      document.getElementById('resultado').innerHTML='';
-      document.querySelectorAll('input,select').forEach(el=>{
-        if(el.type==='checkbox') el.checked=false;
-        else if(el.tagName==='INPUT' || el.tagName==='SELECT') el.value='';
-      });
-      document.getElementById('tablaCartelesBody').innerHTML='';
-      if(typeof window.agregarFila==='function') window.agregarFila();
+   function confirmarYLimpiar(){
+  if(!confirm('¿Limpiar todos los campos?')) return;
+  document.getElementById('inputDatos').value='';
+  document.getElementById('resultado').innerHTML='';
+
+  document.querySelectorAll('input,select').forEach(el=>{
+    if(el.type==='checkbox') {
+      el.checked=false;
+    } else if(el.tagName==='INPUT') {
+      el.value='';
+    } else if(el.tagName==='SELECT') {
+      // Restaurar selects a su valor por defecto
+      el.selectedIndex = 0;
     }
+  });
+
+  document.getElementById('tablaCartelesBody').innerHTML='';
+  if(typeof window.agregarFila==='function') window.agregarFila();
+}
+
   </script>
 </body>
 </html>
