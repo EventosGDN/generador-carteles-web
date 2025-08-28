@@ -1,130 +1,115 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <style>
-    /* ===== Fuentes ===== */
-    @font-face{ font-family:'Miso'; src:url('data:font/ttf;base64,{{MISO_LIGHT_BASE64}}') format('truetype'); font-weight:300; font-style:normal; }
-    @font-face{ font-family:'Miso'; src:url('data:font/ttf;base64,{{MISO_REGULAR_BASE64}}') format('truetype'); font-weight:400; font-style:normal; }
-    @font-face{ font-family:'Miso'; src:url('data:font/ttf;base64,{{MISO_BOLD_BASE64}}') format('truetype'); font-weight:700; font-style:normal; }
-    body{ font-family:'Miso',sans-serif; font-synthesis:none; margin:0; padding:0; width:210mm; height:297mm; position:relative; }
+<meta charset="UTF-8" />
+<title>Cartel Rebaja Simple A6</title>
+<style>
+  @page { size: A4; margin: 0; }
 
-    /* ===== Contenedor A6 (en página A4) ===== */
-    .contenedor-a6{
-      position:absolute; width:105mm; height:148.5mm; box-sizing:border-box;
-      transform-origin:top left; display:flex; flex-direction:column; align-items:center;
-      padding-top:22mm; /* margen superior como en A4 escalado */
-    }
+  /* Fuentes (inyectadas por backend) */
+  @font-face{ font-family:'Miso'; src:url('data:font/ttf;base64,{{MISO_LIGHT_BASE64}}') format('truetype'); font-weight:300; }
+  @font-face{ font-family:'Miso'; src:url('data:font/ttf;base64,{{MISO_REGULAR_BASE64}}') format('truetype'); font-weight:400; }
+  @font-face{ font-family:'Miso'; src:url('data:font/ttf;base64,{{MISO_BOLD_BASE64}}')    format('truetype'); font-weight:700; }
 
-    /* ===== Título ===== */
-    .titulo{
-      width:95mm; text-align:center; font-weight:700; font-size:26pt;
-      line-height:1.05; margin:0 0 6mm 0; letter-spacing:-0.3px;
-      word-break:break-word;
-    }
+  body{ margin:0; padding:0; width:210mm; height:297mm; font-family:'Miso',sans-serif; }
 
-    /* ===== Franja de descuento (A4 style → escala A6) ===== */
-    .descuento{ display:flex; width:95mm; height:28mm; margin:0 0 6mm 0; position:relative; }
-    .lado-blanco{
-      width:38%; background:#fff; border:2px solid #000; border-right:none;
-      display:flex; align-items:center; justify-content:center; position:relative;
-    }
-    .lado-blanco::before{
-      content:''; position:absolute; right:-24px; top:50%; transform:translateY(-50%);
-      width:0; height:0; border-top:42px solid transparent; border-bottom:42px solid transparent; border-left:24px solid #fff;
-    }
-    .lado-negro{
-      flex:1; background:#000; color:#fff; border:2px solid #000; border-left:none;
-      display:flex; align-items:center; justify-content:center;
-    }
-    .texto-lleva{ font-weight:700; font-size:22px; line-height:1.05; text-align:center; }
-    .valor-descuento{
-      font-weight:400; font-size:84px; letter-spacing:-6px; transform:translateY(-6mm);
-    }
+  /* A6 posicionado por backend */
+  .contenedor-a6{
+    position:absolute; top:{{top}}mm; left:{{left}}mm;
+    width:105mm; height:148.5mm;
+    box-sizing:border-box;
+    display:flex; flex-direction:column; 
+    align-items:center;
+    padding:40mm 5mm 5mm 5mm;   /* 40mm arriba, 5mm resto */
+    overflow:hidden;
+  }
 
-    /* ===== Bloque de precios ===== */
-    .bloque-precios{ width:95mm; display:flex; flex-direction:column; align-items:center; gap:3mm; }
+  /* Título */
+  .titulo{
+    font-size:26pt; font-weight:700;
+    text-align:center;
+    margin:0 0 6mm 0;
+  }
 
-    /* Sistema tipográfico de precio (común) */
-    .precio{ display:inline-flex; align-items:flex-start; line-height:1; }
-    .precio .simbolo{
-      font-size:0.56em; line-height:1; margin-right:2px; position:relative; top:0.12em; /* $ a media altura */
-    }
-    .precio .entero{ font-size:1em; line-height:.9; letter-spacing:-0.02em; }
-    .precio .decimales{
-      font-size:0.42em; margin-left:2px; position:relative; top:-0.06em; /* decimales “arriba” alineados al comienzo */
-    }
+  /* Bloque de precios */
+  .bloque-precios{
+    display:flex; flex-direction:column; 
+    align-items:center; gap:3mm; 
+    margin:0;
+    flex-grow:1;
+    justify-content:center;
+    position:relative;
+  }
 
-    /* Tamaños por variante */
-    .precio-final-grande .precio{ font-size:78px; }      /* entero ~78px, $ ~44px, dec ~33px */
-    .precio-original .precio{ font-size:42px; }          /* entero ~42px, $ ~23px, dec ~18px */
+  .precio-final-grande .precio-contenedor{
+    display:flex; align-items:flex-start; gap:2mm;
+  }
+  .precio-final-grande .simbolos{ display:flex; flex-direction:column; align-items:flex-start; }
+  .precio-final-grande .simbolos .peso{ font-size:22px; }
+  .precio-final-grande .simbolos .cu{ display:none; }
+  .precio-final-grande .entero{ font-size:90px; line-height:.9; }
+  .precio-final-grande .decimales{ font-size:22px; position:relative; top:-2px; }
 
-    /* Alineación final */
-    .precio-final-grande{ display:flex; justify-content:center; width:100%; }
-    .precio-original{
-      position:relative; width:max-content; max-width:60mm; align-self:flex-start; margin-left:9mm; margin-top:1mm;
-    }
-    .precio-original::before,
-    .precio-original::after{
-      content:''; position:absolute; left:-2mm; right:-2mm; top:55%; height:0;
-      border-top:1.6px solid #000; transform-origin:center;
-    }
-    .precio-original::before{ transform:rotate(14deg); }
-    .precio-original::after{ transform:rotate(-14deg); }
+  .precio-original-cruz{
+    position:relative; display:inline-block; margin-top:2mm;
+  }
+  .precio-original-cruz::before,
+  .precio-original-cruz::after{
+    content:''; position:absolute; top:50%; left:0; width:100%; height:1px; background:#000;
+  }
+  .precio-original-cruz::before{ transform:rotate(15deg); }
+  .precio-original-cruz::after{  transform:rotate(-15deg); }
+  .precio-original-cruz .precio-contenedor{ display:flex; align-items:flex-start; gap:2mm; }
+  .precio-original-cruz .simbolos{ display:flex; flex-direction:column; align-items:flex-start; font-size:12px; }
+  .precio-original-cruz .simbolos .peso{ font-size:14px; }
+  .precio-original-cruz .simbolos .cu{ font-size:10px; }
+  .precio-original-cruz .entero{ font-size:28px; }
+  .precio-original-cruz .decimales{ font-size:14px; position:relative; top:-1px; }
 
-    /* ===== Info ===== */
-    .info{
-      width:95mm; text-align:center; font-size:11.5px; line-height:1.2;
-      margin:7mm 0 0 0;
-    }
+  /* === Descuento al estilo A4 (a la izquierda) === */
+  .descuento{
+    position:absolute;
+    left:-20mm;                        /* bien al borde izquierdo */
+    top:90%; transform:translateY(-50%); /* centrado vertical con el bloque tachado */
+    font-size:28pt;
+    font-weight:500;
+    color:#000;
+  }
 
-    /* ===== Sello HTML (círculo) ===== */
-    .sello-html-ajustado{
-      position:absolute; right:9mm; top:88mm; width:21mm; height:21mm; background:#000; color:#fff;
-      border-radius:50%; display:flex; flex-direction:column; justify-content:center; align-items:center;
-      text-align:center; line-height:1.04; letter-spacing:-0.2px;
-    }
-    .sello-html-ajustado .linea1{ font-weight:400; font-size:11px; margin-bottom:1px; }
-    .sello-html-ajustado .linea2{ font-weight:700; font-size:12px; margin-bottom:1px; }
-    .sello-html-ajustado .linea3{ font-weight:700; font-size:13px; }
+  /* Info */
+  .info{
+    font-size:9pt; line-height:1.2;
+    text-align:center;
+    margin-top:4mm;
+  }
 
-    /* ===== Código de barras ===== */
-    .codigo-barras-posicionado{
-      position:absolute; right:9mm; bottom:10mm; width:22mm; height:auto;
-    }
-  </style>
+  /* Código de barras */
+  .codigo-barras-posicionado{
+    position:absolute; right:6mm; bottom:5mm;
+    width:28mm; height:14mm; object-fit:contain;
+  }
+</style>
 </head>
 <body>
   <div class="contenedor-a6">
     <div class="titulo">{{descripcion}}</div>
 
-    <div class="descuento">
-      <div class="lado-blanco">
-        <span class="texto-lleva">LLEVÁS<br>1X</span>
-      </div>
-      <div class="lado-negro">
-        <span class="valor-descuento">-{{descuento}}%</span>
-      </div>
-    </div>
-
     <div class="bloque-precios">
-      <!-- Precio final grande (sin C/U) -->
       <div class="precio-final-grande">
-        <div class="precio">
-          <div class="simbolo">$</div>
-          <div class="entero">{{precioFinalEntero}}</div>
-          <div class="decimales">{{precioFinalDecimales}}</div>
+        <div class="precio-contenedor">
+          <div class="simbolos"><div class="peso">$</div></div>
+          <div class="precio-numeros"><span class="entero">{{precioFinalEntero}}</span><span class="decimales">{{precioFinalDecimales}}</span></div>
         </div>
       </div>
 
-      <!-- Precio original tachado (sin C/U) -->
-      <div class="precio-original">
-        <div class="precio">
-          <div class="simbolo">$</div>
-          <div class="entero">{{precioOriginalEntero}}</div>
-          <div class="decimales">{{precioOriginalDecimales}}</div>
+      <div class="precio-original-cruz">
+        <div class="precio-contenedor">
+          <div class="simbolos"><div class="peso">$</div><div class="cu">C/U</div></div>
+          <div class="precio-numeros"><span class="entero">{{precioOriginalEntero}}</span><span class="decimales">{{precioOriginalDecimales}}</span></div>
         </div>
       </div>
+
+      <div class="descuento">-{{descuento}}%</div>
     </div>
 
     <div class="info">
@@ -132,12 +117,6 @@
       VIGENCIA<br>
       del {{desde}} al {{hasta}}<br>
       dept: {{departamento}} - item: {{item}}
-    </div>
-
-    <div class="sello-html-ajustado">
-      <div class="linea1">PRECIO CON</div>
-      <div class="linea2">DESCUENTO</div>
-      <div class="linea3">INCLUIDO</div>
     </div>
 
     <img class="codigo-barras-posicionado" src="{{barcode}}" alt="Código de barras" />

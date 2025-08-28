@@ -39,28 +39,48 @@ function reemplazar(template, mapa) {
 function leerPlantillaRebajaSimple(tamaño) {
   const archivo = tamaño === 'A6' ? 'rebaja_simple_A6.html' : 'rebaja_simple_A4.html';
 
-  // 1) backend/plantillas/tabla
   const ruta1 = path.join(__dirname, 'plantillas', 'tabla', archivo);
   if (fs.existsSync(ruta1)) return fs.readFileSync(ruta1, 'utf8');
 
-  // 2) fallback por si se ejecuta desde el root del proyecto
   const ruta2 = path.join(process.cwd(), 'backend', 'plantillas', 'tabla', archivo);
   if (fs.existsSync(ruta2)) return fs.readFileSync(ruta2, 'utf8');
 
   throw new Error(`No encontré la plantilla de rebaja_simple: ${archivo}`);
 }
 
-async function generarHTMLCartel(datos, tipo, tamaño) {
-  // --- rebaja_simple usa plantillas dedicadas ---
+function leerPlantillaCPT(tamaño) {
+  const archivo = tamaño === 'A6' ? 'CPT_A6.html' : 'CPT_A4.html';
+
+  const ruta1 = path.join(__dirname, 'plantillas', archivo);
+  if (fs.existsSync(ruta1)) return fs.readFileSync(ruta1, 'utf8');
+
+  const ruta2 = path.join(process.cwd(), 'backend', 'plantillas', archivo);
+  if (fs.existsSync(ruta2)) return fs.readFileSync(ruta2, 'utf8');
+
+  throw new Error(`No encontré la plantilla CPT: ${archivo}`);
+}
+
+async function generarHTMLCartel(datos, tipo, tamaño, fuente = 'csv') {
   let template;
-  if (tipo === 'rebaja_simple') {
-    template = leerPlantillaRebajaSimple(tamaño);
+
+  const tipoNorm = String(tipo || '').trim().toLowerCase()
+
+  if (fuente === 'csv') {
+    // siempre CPT
+    template = leerPlantillaCPT(tamaño)
+
+  } else if (tipoNorm === 'rebaja_simple') {
+    // rebaja_simple usa su propia plantilla
+    template = leerPlantillaRebajaSimple(tamaño)
+
   } else {
-    // --- resto de tipos: flujo original ---
-    const archivo = elegirPlantilla({ tipo, tamaño });
-    const htmlPath = path.join(__dirname, 'plantillas', archivo);
-    template = fs.readFileSync(htmlPath, 'utf8');
+    // resto de tipos → % o genéricos
+    const archivo = elegirPlantilla({ tipo: tipoNorm, tamaño })
+    const htmlPath = path.join(__dirname, 'plantillas', 'tabla', archivo)
+    template = fs.readFileSync(htmlPath, 'utf8')
   }
+
+
 
   const {
     descripcion = '',
@@ -85,7 +105,6 @@ async function generarHTMLCartel(datos, tipo, tamaño) {
   const [precioOriginalEntero, precioOriginalDecimales] = Number(precioOriginal).toFixed(2).split('.');
 
   const tokens = {
-    // llaves estándar (tu reemplazo es case-insensitive)
     descripcion,
     precioOriginalEntero,
     precioOriginalDecimales,

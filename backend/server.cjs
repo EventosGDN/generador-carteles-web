@@ -6,7 +6,7 @@ const parse = require('csv-parse/sync')
 const puppeteer = require('puppeteer')
 const { PDFDocument } = require('pdf-lib')
 
-const generarHTMLCartelesA6 = require('./generarCartelesA6.js')
+const generarHTMLCartelesTabla = require('./generarCartelesTabla.js')
 const { generarHTMLCartel } = require('./generadorHtml.cjs')
 
 const app = express()
@@ -53,13 +53,13 @@ app.use((req, res, next) => {
 
 app.use(bodyParser.json({ limit: '10mb' }))
 
-// === RUTA PRINCIPAL: genera PDF de carteles (A4/A6) ===
+// === RUTA PRINCIPAL ===
 app.post('/generar-cartel', async (req, res) => {
   try {
-    const { datos, tipo, tamaño } = req.body
+    const { datos, tipo, tamaño, fuente } = req.body
     if (!datos) return res.status(400).send('Faltan los datos')
 
-    // === PARSE CSV A OBJETOS ===
+    // === PARSE CSV ===
     const lineas = datos.split('\n').map(l => l.trim()).filter(Boolean)
     const datosCarteles = []
 
@@ -78,13 +78,14 @@ app.post('/generar-cartel', async (req, res) => {
 
       const codigoBarras = campos[8]
 
-      // 🔎 Tipo por fila: si alguna celda dice "rebaja_simple", usamos ese tipo
-      const tieneRebajaSimple = campos.some(c => String(c || '').trim().toLowerCase() === 'rebaja_simple')
-      const tipoFila = tieneRebajaSimple ? 'rebaja_simple' : tipo
+      // 🟢 Detectar tipo de cartel en la fila
+      const tipoFila = (campos[9] || '').trim().toLowerCase() || tipo
 
-      const descuento = tipoFila === '%'
-        ? Math.round(100 - (precioFinal * 100) / precioOriginal)
-        : null
+      // 🟢 Calcular descuento SIEMPRE que se pueda
+      let descuento = null
+      if (precioOriginal > 0 && precioFinal > 0) {
+        descuento = Math.round(100 - (precioFinal * 100) / precioOriginal)
+      }
 
       const item = sku
       const departamento = buscarDepartamentoPorSkuDesdeCSV(sku)
@@ -94,7 +95,7 @@ app.post('/generar-cartel', async (req, res) => {
         precioOriginal,
         precioFinal,
         descuento,
-        sku: codigoBarras,   // esto alimenta el EAN13
+        sku: codigoBarras,
         desde,
         hasta,
         departamento,
@@ -106,36 +107,61 @@ app.post('/generar-cartel', async (req, res) => {
     // === GENERAR HTMLS ===
     let paginasHTML = []
 
-    if (tamaño === 'A6') {
-      // 1) Filas NO rebaja_simple → A6 “viejo” (mosaico existente)
-      const normales = datosCarteles.filter(d => d.tipoFila !== 'rebaja_simple')
-      if (normales.length) {
-        const htmlNormales = await generarHTMLCartelesA6(normales)
-        paginasHTML = paginasHTML.concat(htmlNormales)
-      }
-      // 2) Filas rebaja_simple → nuevas plantillas A6
-      const rebajas = datosCarteles.filter(d => d.tipoFila === 'rebaja_simple')
-      for (const datos of rebajas) {
-        const html = await generarHTMLCartel(datos, 'rebaja_simple', 'A6')
-        paginasHTML.push(html)
-      }
-    } else {
-      // A4: cada fila decide su tipo (rebaja_simple o el global)
-      for (const datos of datosCarteles) {
-        const tipoUsado = datos.tipoFila || tipo
-        const html = await generarHTMLCartel(datos, tipoUsado, 'A4')
-        paginasHTML.push(html)
+ if (fuente === 'csv') {
+  if (tamaño === 'A6') {
+    const bloques = []
+    for (let i = 0; i < datosCarteles.length; i++) {
+      const datos = datosCarteles[i]
+      let html = await generarHTMLCartel(datos, 'cpt', 'A6', 'csv')
+
+      // 👇 igual que en generarHTMLCartelesTabla
+      const top  = (Math.floor((i % 4) / 2) * 148.5).toFixed(1)
+      const left = (i % 2 === 0 ? 0 : 105).toFixed(1)
+      html = html.replace(
+        'class="contenedor-a6"',
+        `class="contenedor-a6" style="top:${top}mm; left:${left}mm"`
+      )
+
+      bloques.push(html)
+    }
+
+    // empaquetar de a 4 en una hoja
+    for (let i = 0; i < bloques.length; i += 4) {
+      paginasHTML.push(
+        `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"></head><body>${bloques.slice(i, i+4).join('')}</body></html>`
+      )
+    }
+  } else {
+    for (const datos of datosCarteles) {
+      const html = await generarHTMLCartel(datos, 'cpt', 'A4', 'csv')
+      paginasHTML.push(html)
+    }
+  }
+
+
+
+
+
+    } else if (fuente === 'tabla') {
+      if (tamaño === 'A6') {
+        const htmlPaginas = await generarHTMLCartelesTabla(datosCarteles, 'A6', 'tabla')
+        paginasHTML = paginasHTML.concat(htmlPaginas)
+      } else {
+        for (const datos of datosCarteles) {
+          const tipoUsado = datos.tipoFila || tipo
+          const html = await generarHTMLCartel(datos, tipoUsado, 'A4', 'tabla')
+          paginasHTML.push(html)
+        }
       }
     }
 
-    // === Inyectar wrapper + fuentes
+    // === Inyectar fuentes + PDF ===
     paginasHTML = paginasHTML.map(ensureFullHtml).map(h => h
       .replace(/{{MISO_LIGHT_BASE64}}/g,  misoLightBase64)
       .replace(/{{MISO_REGULAR_BASE64}}/g, misoRegBase64)
       .replace(/{{MISO_BOLD_BASE64}}/g,    misoBoldBase64)
     )
 
-    // === Generar PDF con Puppeteer
     const browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox']

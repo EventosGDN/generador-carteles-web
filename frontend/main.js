@@ -9,16 +9,18 @@ async function generarCartel() {
   const datos = document.getElementById('inputDatos').value
   const tipo = document.getElementById('tipoCartel').value
   const tamaño = document.getElementById('formato').value
-  await postGenerarCartel({ datos, tipo, tamaño })
+  await postGenerarCartel({ datos, tipo, tamaño, fuente: 'csv' }) // 👈 aseguramos 'csv'
 }
 
-async function postGenerarCartel({ datos, tipo, tamaño }) {
+
+async function postGenerarCartel({ datos, tipo, tamaño, fuente = 'csv' }) {
   try {
     const res = await fetch(`${URL_BACKEND}/generar-cartel`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ datos, tipo, tamaño })
+      body: JSON.stringify({ datos, tipo, tamaño, fuente }) // 👈 agregado
     })
+
     if (!res.ok) {
       const texto = await res.text()
       console.error('❌ Error al generar cartel:', texto)
@@ -321,17 +323,16 @@ function agregarFila() {
 function lineaCSVDesdeFilaParaBackend(tr) {
   const c = tr.querySelectorAll('td')
 
-  // 👉 Fechas ya en DD-MM-YYYY
   const fechaDesde = toDDMMYYYY(c[4].querySelector('input').value || '')
   const fechaHasta = toDDMMYYYY(c[5].querySelector('input').value || '')
 
-  const sku        = onlyDigits(c[12].querySelector('input').value || '')
-  const desc       = c[11].querySelector('input').value || ''
-  const ean        = normalizarEAN(c[13].querySelector('input').value || '')
+  const sku  = onlyDigits(c[12].querySelector('input').value || '')
+  const desc = c[11].querySelector('input').value || ''
+  const ean  = normalizarEAN(c[13].querySelector('input').value || '')
 
-  const precioOri  = parseNum(c[1].querySelector('input').value)
-  const descPct    = parseNum(c[2].querySelector('input').value)
-  const manual     = parseNum(c[3].querySelector('input').value)
+  const precioOri = parseNum(c[1].querySelector('input').value)
+  const descPct   = parseNum(c[2].querySelector('input').value)
+  const manual    = parseNum(c[3].querySelector('input').value)
 
   let precioFin
   if (Number.isFinite(manual)) precioFin = manual
@@ -341,7 +342,9 @@ function lineaCSVDesdeFilaParaBackend(tr) {
   const po = splitPrecioParts(precioOri)
   const pf = splitPrecioParts(precioFin)
 
-  // desde,hasta,sku,descripcion,PO_ent,PO_dec,PF_ent,PF_dec,codigoBarras
+  const tipoCartel = c[6].querySelector('select')?.value || ''
+
+  // ahora enviamos 10 campos, con el tipo incluido
   return [
     fechaDesde,
     fechaHasta,
@@ -351,9 +354,11 @@ function lineaCSVDesdeFilaParaBackend(tr) {
     po.dec,
     pf.ent,
     pf.dec,
-    ean
+    ean,
+    tipoCartel   // 👈 agregado
   ].join(',')
 }
+
 
 async function cargarDesdeTabla() {
   const filas = document.querySelectorAll('#tablaCartelesBody tr')
@@ -402,12 +407,12 @@ async function cargarDesdeTabla() {
     if (a6) csvA6.push(linea)
   })
 
-  if (csvA4.length) {
-    await postGenerarCartel({ datos: csvA4.join('\n'), tipo: '%', tamaño: 'A4' })
-  }
-  if (csvA6.length) {
-    await postGenerarCartel({ datos: csvA6.join('\n'), tipo: '%', tamaño: 'A6' })
-  }
+if (csvA4.length) {
+  await postGenerarCartel({ datos: csvA4.join('\n'), tipo: '%', tamaño: 'A4', fuente: 'tabla' })
+}
+if (csvA6.length) {
+  await postGenerarCartel({ datos: csvA6.join('\n'), tipo: '%', tamaño: 'A6', fuente: 'tabla' })
+}
 }
 
 window.addEventListener('DOMContentLoaded', () => {
